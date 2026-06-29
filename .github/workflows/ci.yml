@@ -1,0 +1,86 @@
+﻿name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  encoding-check:
+    name: Encoding Check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all source files are UTF-8
+        shell: powershell
+        run: |
+          $bad = @()
+          $files = Get-ChildItem -Recurse -Include "*.cpp","*.h","*.hpp","*.txt","*.cmake" -File |
+            Where-Object { $_.FullName -notmatch '\\.(git|vs|vscode|vcpkg_installed|build|out)\\' }
+          foreach ($f in $files) {
+              $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
+              # Accept UTF-8 BOM
+              if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { continue }
+              # Accept pure ASCII (subset of UTF-8)
+              $hasHigh = $false
+              for ($i = 0; $i -lt [Math]::Min($bytes.Length, 2000); $i++) {
+                  if ($bytes[$i] -ge 0x80) { $hasHigh = $true; break }
+              }
+              if ($hasHigh) { $bad += $f.FullName }
+          }
+          if ($bad.Count -gt 0) {
+              Write-Host "::error::Found $($bad.Count) non-UTF-8 files:"
+              foreach ($f in $bad) { Write-Host "  $f" }
+              exit 1
+          }
+          Write-Host "::notice::All files are UTF-8. Check passed."
+
+  cmake-lint:
+    name: CMake Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cmakelang
+        run: pip install cmakelang
+      - name: Run cmake-lint
+        run: |
+          find . -name "CMakeLists.txt" -not -path "./.git/*" -not -path "./build/*" -not -path "./out/*" |
+          while read f; do
+            echo "::group::$f"
+            cmake-lint --line-width=120 "$f" || true
+            echo "::endgroup::"
+          done
+      - name: Verify CMake format consistency
+        run: |
+          find . -name "CMakeLists.txt" -not -path "./.git/*" -not -path "./build/*" -not -path "./out/*" |
+          while read f; do
+            if ! cmake-format --check "$f" >/dev/null 2>&1; then
+              echo "::warning file=$f::CMake formatting differs from cmake-format default"
+            fi
+          done
+
+  clang-format-check:
+    name: Clang Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+      - name: Check formatting
+        run: |
+          exit_code=0
+          while IFS= read -r f; do
+            if ! clang-format --dry-run --Werror "$f" 2>/dev/null; then
+              echo "::warning file=$f::Formatting differs from .clang-format"
+              exit_code=1
+            fi
+          done < <(find . -name "*.cpp" -o -name "*.h" -o -name "*.hpp" |
+                   grep -v '/.git/' | grep -v '/build/' | grep -v '/out/')
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::Some files need formatting. Run: clang-format -i <file>"
+          fi
+          exit $exit_code

@@ -1,0 +1,85 @@
+﻿name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_id: ${{ steps.create_release.outputs.id }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.event.repository.name }} ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ${{ github.event.repository.name }} v${{ steps.version.outputs.VERSION }}
+
+            ### Changes
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ### Artifacts
+            Build artifacts are attached below (if available for this repository).
+
+            ---
+            Licensed under BSL 1.1 — see [LICENSE](LICENSE.txt)
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+
+  package-source:
+    name: Package Source
+    runs-on: ubuntu-latest
+    needs: create-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create source archive
+        run: |
+          tar czf ${{ github.event.repository.name }}-${{ github.ref_name }}-source.tar.gz             --exclude='.git' --exclude='build' --exclude='out' --exclude='.vs'             -C .. ${{ github.event.repository.name }}
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-source
+          path: ${{ github.event.repository.name }}-${{ github.ref_name }}-source.tar.gz
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.event.repository.name }}-${{ github.ref_name }}-source.tar.gz

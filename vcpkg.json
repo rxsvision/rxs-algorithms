@@ -1,0 +1,20 @@
+﻿{
+    "name": "rxs-algorithms",
+    "version": "1.0.0",
+    "description": "RXS algorithm modules - standalone 3D measurement algorithms",
+    "dependencies": [
+        {
+            "name": "pcl",
+            "version>=": "1.14.0"
+        },
+        {
+            "name": "opencv4",
+            "version>=": "4.8.0"
+        },
+        {
+            "name": "eigen3",
+            "version>=": "3.4.0"
+        }
+    ],
+    "builtin-baseline": "2024-01-01"
+}

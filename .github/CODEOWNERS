@@ -1,0 +1,14 @@
+﻿# Default owners for the entire repository
+# Update with your GitHub username or team
+* @rxsvision
+
+# CMake build system
+**/CMakeLists.txt @rxsvision
+**/cmake/ @rxsvision
+
+# CI/CD workflows
+.github/ @rxsvision
+
+# API layer
+include/rxs/ @rxsvision
+src/rxs_api.cpp @rxsvision

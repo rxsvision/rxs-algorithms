@@ -1,0 +1,95 @@
+﻿# ===========================================================================
+# rxs clang-format style
+# Based on Microsoft style with project-specific adjustments
+# Usage: clang-format -i <file>  or  git clang-format <commit>
+# ===========================================================================
+---
+Language:        Cpp
+BasedOnStyle:    Microsoft
+
+# Indentation
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+
+# Braces
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterStruct:     false
+  AfterUnion:      false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+
+# Line length
+ColumnLimit:     120
+
+# Alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Left
+AlignOperands:   true
+AlignTrailingComments: true
+
+# Arguments and parameters
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: true
+BinPackParameters: true
+
+# Short forms
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# Includes
+IncludeBlocks:   Regroup
+IncludeCategories:
+  # System headers
+  - Regex:           '^<[^/]+\.h>'
+    Priority:       1
+  # C++ standard library
+  - Regex:           '^<[^/]+>'
+    Priority:       2
+  # PCL
+  - Regex:           '^<pcl/'
+    Priority:       3
+  # OpenCV
+  - Regex:           '^<opencv2?/'
+    Priority:       4
+  # Qt
+  - Regex:           '^<Q'
+    Priority:       5
+  # Project headers (relative)
+  - Regex:           '^".*/'
+    Priority:       7
+  # Local project headers
+  - Regex:           '^".*\.h"'
+    Priority:       6
+
+# Pointers and references
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Misc
+FixNamespaceComments: true
+ReflowComments: false
+SortIncludes: true
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
+Standard:        c++17

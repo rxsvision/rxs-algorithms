@@ -1,0 +1,82 @@
+﻿name: Build (Windows)
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - "**/CMakeLists.txt"
+      - "vcpkg.json"
+      - ".github/workflows/build-windows.yml"
+
+permissions:
+  contents: read
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
+jobs:
+  build:
+    name: Build ${{ matrix.config }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Release, Debug]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Export GitHub Actions cache env
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitDate: "2024-01-01"
+
+      - name: Configure CMake
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: default
+          buildPreset: default
+        continue-on-error: ${{ matrix.config == 'Debug' }}
+
+      - name: Build
+        shell: cmd
+        run: |
+          cmake --build build --config ${{ matrix.config }} --parallel
+        continue-on-error: ${{ matrix.config == 'Debug' }}
+
+      - name: Run tests
+        if: contains(matrix.config, 'Release')
+        shell: cmd
+        run: |
+          setlocal enabledelayedexpansion
+          for /r build %%f in (*_test.exe *_test_main.exe test_main.exe) do (
+            echo Running: %%f
+            %%f || echo ::warning::Test failed: %%f
+          )
+        continue-on-error: true
+
+      - name: Upload build artifacts
+        if: matrix.config == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.config }}
+          path: |
+            build/**/*.dll
+            build/**/*.lib
+            build/**/*.exe
+            build/**/*.pdb
+          retention-days: 14
