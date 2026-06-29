@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file dll_holeDeepth.cpp
  * @brief DLL export wrapper for holeDeepth — reference integration
  *

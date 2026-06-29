@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file hole_depth.h
  * @brief Hole depth measurement algorithm — standalone SDK module
  *

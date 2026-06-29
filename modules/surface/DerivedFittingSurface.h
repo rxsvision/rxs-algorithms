@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 //#include<pcl/surface/on_nurbs/fitting_surface_pdm.h>
 #include"D:/PCL 1.10.1/include/pcl-1.10/pcl\\surface/on_nurbs/fitting_surface_pdm.h"
 
@@ -8,9 +8,9 @@ class DerivedFittingSurface :
 {
 public:
 
-    // ÏÔÊ½µ÷ÓÃ»ùÀà¹¹Ôìº¯Êı
+    // æ˜¾å¼è°ƒç”¨åŸºç±»æ„é€ å‡½æ•°
     DerivedFittingSurface(pcl::on_nurbs::NurbsDataSurface* data, const ON_NurbsSurface& ns) : pcl::on_nurbs::FittingSurface(data, ns) {
-        // ÆäËûµÄÅÉÉúÀà¹¹ÔìÂß¼­
+        // å…¶ä»–çš„æ´¾ç”Ÿç±»æ„é€ é€»è¾‘
     }
 
     void assemble(Parameter param = Parameter()) override;

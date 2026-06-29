@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 double ON_BinomialCoefficient(int i, int j)
 {

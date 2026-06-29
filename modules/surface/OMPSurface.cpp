@@ -1,4 +1,4 @@
-#include "OMPSurface.h"
+ï»¿#include "OMPSurface.h"
 
 OMPSurface::OMPSurface(int sqrted_zone_num)
 {
@@ -19,7 +19,7 @@ void OMPSurface::setInputCloud(CP cloud)
 	CzxTimer asdfgbhajsdbgj(__func__);
 	int size_sub = sqrt(zone_num);
 	main_cloud = cloud;
-	sub_clouds.reserve(10000);//Ô¤Áô×ã¹»ÄÚ´æ±ÜÃâÔÚ¶àÏß³Ì»·¾³ÖĞvectorÖØĞÂÉêÇëÄÚ´æ¿é
+	sub_clouds.reserve(10000);//é¢„ç•™è¶³å¤Ÿå†…å­˜é¿å…åœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸­vectoré‡æ–°ç”³è¯·å†…å­˜å—
 	devideCloud(cloud, size_sub, sub_clouds);
 }
 

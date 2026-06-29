@@ -1,4 +1,4 @@
-#include"czxTool.h"
+ï»¿#include"czxTool.h"
 #include <pcl/common/angles.h>
 #include <pcl/common/common.h>
 #include <pcl/common/distances.h>
@@ -101,7 +101,7 @@ Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, int size1, int size2, funct
 	viewer.addPointCloud(c1, "1");
 	viewer.addPointCloud(c2, "2");
 	if (callback != nullptr) {
-		// ×¢²á¼üÅÌÊÂ¼ş»Øµ÷º¯Êı
+		// æ³¨å†Œé”®ç›˜äº‹ä»¶å›è°ƒå‡½æ•°
 		viewer.registerKeyboardCallback(callback);
 	}
 	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1, 0, 0, "1");
@@ -122,7 +122,7 @@ void Tool::showComparison(CloudT::Ptr c1, PointT p2, int size1, int size2, funct
 	viewer.addPointCloud(c1, "1");
 	viewer.addPointCloud(c2, "2");
 	if (callback != nullptr) {
-		// ×¢²á¼üÅÌÊÂ¼ş»Øµ÷º¯Êı
+		// æ³¨å†Œé”®ç›˜äº‹ä»¶å›è°ƒå‡½æ•°
 		viewer.registerKeyboardCallback(callback);
 	}
 	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1, 0, 0, "1");
@@ -143,7 +143,7 @@ void Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, CloudT::Ptr c3, int si
 	viewer.addPointCloud(c2, "2");
 	viewer.addPointCloud(c3, "3");
 	if (callback != nullptr) {
-		// ×¢²á¼üÅÌÊÂ¼ş»Øµ÷º¯Êı
+		// æ³¨å†Œé”®ç›˜äº‹ä»¶å›è°ƒå‡½æ•°
 		viewer.registerKeyboardCallback(callback);
 	}
 	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1, 0, 0, "1");
@@ -254,35 +254,35 @@ namespace arsenal
 		for (int i = 1; i < 2; i++)
 		{
 			int N = cloud->size();
-			Eigen::VectorXcf x = cloud->getMatrixXfMap(3, 4, 0).row(i);  // ÊäÈëĞÅºÅ
+			Eigen::VectorXcf x = cloud->getMatrixXfMap(3, 4, 0).row(i);  // è¾“å…¥ä¿¡å·
 
 
-			// Ö´ĞĞ¸µÀïÒ¶±ä»»
+			// æ‰§è¡Œå‚…é‡Œå¶å˜æ¢
 			Eigen::FFT<float> fft;
 			Eigen::VectorXcf spectrum = fft.fwd(x);
 
-			//// Êä³öÆµÆ×
-			//std::cout << "Ô­Ê¼ÆµÆ×£º" << std::endl;
+			//// è¾“å‡ºé¢‘è°±
+			//std::cout << "åŸå§‹é¢‘è°±ï¼š" << std::endl;
 			//for (int i = 0; i < N; ++i) {
 			//	std::cout << std::abs(spectrum(i)) << " ";
 			//}
 			//std::cout << std::endl;
 
-			// ½«Ç°Ò»°ëÆµÆ×ÖÃÁã£¨È¥³ıµÍÆµĞÅºÅ£©
+			// å°†å‰ä¸€åŠé¢‘è°±ç½®é›¶ï¼ˆå»é™¤ä½é¢‘ä¿¡å·ï¼‰
 			spectrum.tail(10).setZero();
 
-			//// Êä³ö´¦ÀíºóµÄÆµÆ×
-			//std::cout << "È¥³ıµÍÆµĞÅºÅºóµÄÆµÆ×£º" << std::endl;
+			//// è¾“å‡ºå¤„ç†åçš„é¢‘è°±
+			//std::cout << "å»é™¤ä½é¢‘ä¿¡å·åçš„é¢‘è°±ï¼š" << std::endl;
 			//for (int i = 0; i < N; ++i) {
 			//	std::cout << std::abs(spectrum(i)) << " ";
 			//}
 			//std::cout << std::endl;
 
-			// Ö´ĞĞ¸µÀïÒ¶Äæ±ä»»
+			// æ‰§è¡Œå‚…é‡Œå¶é€†å˜æ¢
 			Eigen::VectorXcf inverted = fft.inv(spectrum);
 
-			//// Êä³öÄæ±ä»»½á¹û
-			//std::cout << "Äæ±ä»»½á¹û£º" << std::endl;
+			//// è¾“å‡ºé€†å˜æ¢ç»“æœ
+			//std::cout << "é€†å˜æ¢ç»“æœï¼š" << std::endl;
 			//std::cout << inverted << std::endl;
 			ret->getMatrixXfMap(3, 4, 0).row(i) = inverted.real();
 		}
@@ -324,27 +324,27 @@ namespace arsenal
 	std::vector<double> readDoubleFromFile(const std::string& filename) {
 		std::vector<double> result;
 
-		// ´ò¿ªÎÄ¼ş
+		// æ‰“å¼€æ–‡ä»¶
 		std::ifstream inputFile(filename);
 
-		// ¼ì²éÎÄ¼şÊÇ·ñ³É¹¦´ò¿ª
+		// æ£€æŸ¥æ–‡ä»¶æ˜¯å¦æˆåŠŸæ‰“å¼€
 		if (!inputFile.is_open()) {
 			throw std::runtime_error(filename + "no exist");
 		}
 
-		// ÖğĞĞ¶ÁÈ¡ÎÄ¼şÄÚÈİ
+		// é€è¡Œè¯»å–æ–‡ä»¶å†…å®¹
 		std::string line;
 		while (std::getline(inputFile, line)) {
 			std::istringstream iss(line);
 			double temp;
 
-			// Öğ¸ö¶ÁÈ¡double²¢Ìí¼Óµ½ÏòÁ¿ÖĞ
+			// é€ä¸ªè¯»å–doubleå¹¶æ·»åŠ åˆ°å‘é‡ä¸­
 			while (iss >> temp) {
 				result.push_back(temp);
 			}
 		}
 
-		// ¹Ø±ÕÎÄ¼ş
+		// å…³é—­æ–‡ä»¶
 		inputFile.close();
 
 		return result;
@@ -361,11 +361,11 @@ namespace arsenal
 			x << 0, 1, 0;
 		}
 
-		// ¼ÆËãµÚÒ»¸ö´¹Ö±ÏòÁ¿
+		// è®¡ç®—ç¬¬ä¸€ä¸ªå‚ç›´å‘é‡
 		x = x - z.dot(x) * z;
 		x.normalize();
 
-		// ¼ÆËãµÚ¶ş¸ö´¹Ö±ÏòÁ¿
+		// è®¡ç®—ç¬¬äºŒä¸ªå‚ç›´å‘é‡
 		Eigen::Vector3f y = z.cross(x);
 		y.normalize();
 

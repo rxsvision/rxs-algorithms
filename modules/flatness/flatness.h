@@ -1,4 +1,4 @@
-#ifndef RXS_FLATNESS_H
+﻿#ifndef RXS_FLATNESS_H
 #define RXS_FLATNESS_H
 
 /**

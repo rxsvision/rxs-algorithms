@@ -1,4 +1,4 @@
-#include "BSplineLength.h"
+ï»¿#include "BSplineLength.h"
 
 //#define CZX_DEBUG
 
@@ -19,10 +19,10 @@ BSplineLength::BSplineLength(string conf_path)
 /// 
 /// </summary>
 /// <param name="cloud"></param>
-/// <param name="min_length">µãÔÆ×î¶Ì³¤¶È</param>
-/// <param name="min_angle">µãÔÆ×î´ó¼Ğ½Ç</param>
-/// <param name="min_points">×îÉÙµãÔÆÊıÁ¿</param>
-/// <param name="along_y">µãÔÆÊÇ·ñÑØ×ÅyÖá</param>
+/// <param name="min_length">ç‚¹äº‘æœ€çŸ­é•¿åº¦</param>
+/// <param name="min_angle">ç‚¹äº‘æœ€å¤§å¤¹è§’</param>
+/// <param name="min_points">æœ€å°‘ç‚¹äº‘æ•°é‡</param>
+/// <param name="along_y">ç‚¹äº‘æ˜¯å¦æ²¿ç€yè½´</param>
 /// <returns></returns>
 /// 
 bool BSplineLength::verify(CP cloud, float min_length, float min_points, bool along_y)
@@ -304,8 +304,8 @@ double BSplineLength::curveLengthTest(Eigen::MatrixXd controlMatrix)
 vector<double> BSplineLength::fitBSpline(CP cloud, bool along_y)
 {
 	CzxTimer sdhfadh(__func__);
-	unsigned order(4);		//½×Êı
-	unsigned n_control_points(cloud->size() / stoi(conf["controlDense"]) + 4);		//¿ØÖÆµã¸öÊı
+	unsigned order(4);		//é˜¶æ•°
+	unsigned n_control_points(cloud->size() / stoi(conf["controlDense"]) + 4);		//æ§åˆ¶ç‚¹ä¸ªæ•°
 
 	bool (*compare)(PointT, PointT);
 	if (along_y)
@@ -317,7 +317,7 @@ vector<double> BSplineLength::fitBSpline(CP cloud, bool along_y)
 
 	if (along_y)
 	{
-		cloud->getMatrixXfMap(3, 4, 0).row(0).swap(cloud->getMatrixXfMap(3, 4, 0).row(1)); //yÖáÏòxÖáÇ¨ÒÆ
+		cloud->getMatrixXfMap(3, 4, 0).row(0).swap(cloud->getMatrixXfMap(3, 4, 0).row(1)); //yè½´å‘xè½´è¿ç§»
 	}
 	cloud->getMatrixXfMap(3, 4, 0).row(1).swap(cloud->getMatrixXfMap(3, 4, 0).row(2));
 	//#ifdef CZX_DEBUG
@@ -327,7 +327,7 @@ vector<double> BSplineLength::fitBSpline(CP cloud, bool along_y)
 
 	auto ret = fitBSpline(cloud);
 
-	////»Ö¸´ÑùÌõµ½Ô­Ê¼µãÔÆÖĞ
+	////æ¢å¤æ ·æ¡åˆ°åŸå§‹ç‚¹äº‘ä¸­
 	cloud->getMatrixXfMap(3, 4, 0).row(2).swap(cloud->getMatrixXfMap(3, 4, 0).row(1));
 	cloud->getMatrixXfMap(3, 4, 0).row(1).setConstant(axis_z);
 	if (along_y)
@@ -341,9 +341,9 @@ vector<double> BSplineLength::fitBSpline(CP cloud, bool along_y)
 vector<double> BSplineLength::fitBSpline(CP cloud)
 {
 	CzxTimer sdhfadh(__func__);
-	unsigned order(4);		//½×Êı
-	int n_control_points(cloud->size() / stoi(conf["controlDense"]) + 4);		//¿ØÖÆµã¸öÊı
-	//int n_control_points=100;		//¿ØÖÆµã¸öÊı
+	unsigned order(4);		//é˜¶æ•°
+	int n_control_points(cloud->size() / stoi(conf["controlDense"]) + 4);		//æ§åˆ¶ç‚¹ä¸ªæ•°
+	//int n_control_points=100;		//æ§åˆ¶ç‚¹ä¸ªæ•°
 	n_control_points = std::max(n_control_points, 100);
 
 	CP ret(new CloudT);
@@ -353,8 +353,8 @@ vector<double> BSplineLength::fitBSpline(CP cloud)
 	PointCloud2Vector2d(cloud, data.interior);
 
 	pcl::on_nurbs::FittingCurve2d::Parameter curve_params;
-	curve_params.smoothness = 0.01;		//¹â»¬¶È
-	curve_params.rScale = 0.02;		//³ß¶È
+	curve_params.smoothness = 0.01;		//å…‰æ»‘åº¦
+	curve_params.rScale = 0.02;		//å°ºåº¦
 
 
 	ON_NurbsCurve curve = pcl::on_nurbs::FittingCurve2d::initNurbsPCA(order, &data, n_control_points);
@@ -362,10 +362,10 @@ vector<double> BSplineLength::fitBSpline(CP cloud)
 	pcl::on_nurbs::FittingCurve2d fit(&data, curve);
 	{
 		CzxTimer _("assemble");
-		fit.assemble(curve_params);		//×°ÅäÇúÏß
+		fit.assemble(curve_params);		//è£…é…æ›²çº¿
 	}
 
-	//ÉèÖÃ¹Ì¶¨µã
+	//è®¾ç½®å›ºå®šç‚¹
 	Eigen::Vector2d star(cloud->points[0].x, cloud->points[0].y);
 	Eigen::Vector2d end(cloud->points[cloud->size() - 1].x, cloud->points[cloud->size() - 1].y);
 	if (star[0] > end[0])
@@ -373,7 +373,7 @@ vector<double> BSplineLength::fitBSpline(CP cloud)
 		swap(star, end);
 	}
 	fit.addControlPointConstraint(0, star, 100);
-	fit.addControlPointConstraint(curve.CVCount() - 1, end, 100); // Ğ¡Ò»µãµÄÈ¨ÖØ²»Ò»¶¨»áÈÃ×îÖÕ¿ØÖÆµãÊÇÊ×Î²µã	
+	fit.addControlPointConstraint(curve.CVCount() - 1, end, 100); // å°ä¸€ç‚¹çš„æƒé‡ä¸ä¸€å®šä¼šè®©æœ€ç»ˆæ§åˆ¶ç‚¹æ˜¯é¦–å°¾ç‚¹	
 	{
 		CzxTimer sdhfadh1("solve");
 		fit.solve();
@@ -431,10 +431,10 @@ void BSplineLength::PointCloud2Vector2d(pcl::PointCloud<pcl::PointXYZ>::Ptr clou
 
 ON_3dPoint BSplineLength::inverseMapping(pcl::KdTreeFLANN<PointT>& nurbs_tree, CP cloud, ON_3dPoint target)
 {
-	std::vector<int> pointIdxNKNSearch; // ÓÃÓÚ´æ´¢×î½üÁÚµãµÄË÷Òı
-	std::vector<float> pointNKNSquaredDistance; // ÓÃÓÚ´æ´¢×î½üÁÚµãµÄ¾àÀëµÄÆ½·½
+	std::vector<int> pointIdxNKNSearch; // ç”¨äºå­˜å‚¨æœ€è¿‘é‚»ç‚¹çš„ç´¢å¼•
+	std::vector<float> pointNKNSquaredDistance; // ç”¨äºå­˜å‚¨æœ€è¿‘é‚»ç‚¹çš„è·ç¦»çš„å¹³æ–¹
 	if (nurbs_tree.nearestKSearch(PointT(target.x, target.y, target.z), 2, pointIdxNKNSearch, pointNKNSquaredDistance) < 2)
-		throw logic_error("ÕÒ²»µ½½üÁÚ");
+		throw logic_error("æ‰¾ä¸åˆ°è¿‘é‚»");
 	return ON_3dPoint(cloud->points[pointIdxNKNSearch[1]].x, cloud->points[pointIdxNKNSearch[1]].y, cloud->points[pointIdxNKNSearch[1]].z);
 }
 
@@ -460,7 +460,7 @@ double BSplineLength::lineProfile(const pcl::on_nurbs::FittingCurve2d& fit, CP c
 	}
 	if (visual)
 	{
-		cout << "ÂÖÀª¶È" << 2 * max_error << endl;
+		cout << "è½®å»“åº¦" << 2 * max_error << endl;
 		ON_3dPoint target(fit.m_data->interior[arg_max_error][0], fit.m_data->interior[arg_max_error][1], 0);
 		ON_3dPoint pt = inverseMapping(curve_kdtree, curve_cloud, target);
 		CP maxErrorPoint(new CloudT());
@@ -494,7 +494,7 @@ double BSplineLength::lineProfileMy(const pcl::on_nurbs::FittingCurve2d& fit, CP
 	}
 	if (visual)
 	{
-		cout << "ÂÖÀª¶È" << 2 * max_error << endl;
+		cout << "è½®å»“åº¦" << 2 * max_error << endl;
 		ON_3dPoint target(fit.m_data->interior[arg_max_error][0], fit.m_data->interior[arg_max_error][1], 0);
 		ON_3dPoint pt = inverseMapping(curve_kdtree, curve_cloud, target);
 		CP maxErrorPoint(new CloudT());

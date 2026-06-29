@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include"czxTool.h"
 
@@ -33,8 +33,8 @@ public:
 	void build_x(CP& cloud, Tree& root, int div_count = 1);
 	void build_y(CP& cloud, Tree& root, int div_count = 1);
 
-	void build_x_v2(Tree& root);//ÖØĞÂÅÅĞòµãÔÆ
-	void build_y_v2(Tree& root);//ÖØĞÂÅÅĞòµãÔÆ
+	void build_x_v2(Tree& root);//é‡æ–°æ’åºç‚¹äº‘
+	void build_y_v2(Tree& root);//é‡æ–°æ’åºç‚¹äº‘
 
 	template<typename CloudType>
 	int squareSearch(PointT& target, float* radius, CloudType& ret);

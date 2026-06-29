@@ -1,4 +1,4 @@
-#ifndef RXS_VOLUME_GLUE_H
+﻿#ifndef RXS_VOLUME_GLUE_H
 #define RXS_VOLUME_GLUE_H
 
 /**

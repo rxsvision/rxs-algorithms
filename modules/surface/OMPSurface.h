@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include"czxTool.h"
 #include <pcl/common/common.h>
 #include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
@@ -40,9 +40,9 @@ public:
 	CP getNurb(T nurbs);
 
 	#ifdef NEW_NURBS
-	bool fitting_2(ROICloud& cloud_in, int N);//ÖØ¹¹Ö®ºóµÄnurbs
+	bool fitting_2(ROICloud& cloud_in, int N);//é‡æ„ä¹‹åçš„nurbs
 	#else
-	bool fitting(ROICloud& cloud_in, int N);//PCLµÄnurbs
+	bool fitting(ROICloud& cloud_in, int N);//PCLçš„nurbs
 	#endif
 
 	template<typename T>

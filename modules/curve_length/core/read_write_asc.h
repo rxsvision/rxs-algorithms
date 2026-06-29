@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 
 #include <string>
@@ -14,7 +14,7 @@ public:
 	//************************************
 	// Method:    readAsc
 	// Returns:   void
-	// Function:  ¶ÁÈëascÎÄ¼þ
+	// Function:  è¯»å…¥ascæ–‡ä»¶
 	// Time:      2014/08/05
 	// Author:    Qian
 	//************************************
@@ -23,7 +23,7 @@ public:
 	//************************************
 	// Method:    writeAsc
 	// Returns:   void
-	// Function:  Ð´³öascÎÄ¼þ
+	// Function:  å†™å‡ºascæ–‡ä»¶
 	// Time:      2014/08/05
 	// Author:    Qian
 	//************************************

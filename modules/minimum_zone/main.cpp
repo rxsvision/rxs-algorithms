@@ -1,4 +1,4 @@
-#include <pcl/point_types.h>
+ï»¿#include <pcl/point_types.h>
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/project_inliers.h>
 #include <pcl/surface/convex_hull.h>
@@ -21,11 +21,11 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr computeConvexHull(const pcl::PointCloud<pcl:
 {
     //CzxTimer dgfsg(__func__);
 
-    // ´´½¨Í¹°ü¶ÔÏó
+    // åˆ›å»ºå‡¸åŒ…å¯¹è±¡
     pcl::ConvexHull<pcl::PointXYZ> hull;
     hull.setInputCloud(cloud);
     hull.setDimension(3);
-    // ¼ÆËãÍ¹°ü
+    // è®¡ç®—å‡¸åŒ…
     pcl::PointCloud<pcl::PointXYZ>::Ptr hull_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     hull.reconstruct(*hull_cloud);
 
@@ -37,7 +37,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr computeConvexHull(const pcl::PointCloud<pcl:
 
     //hull.setInputCloud(th.hull_points);
     //hull.setDimension(3);
-    //// ¼ÆËãÍ¹°ü
+    //// è®¡ç®—å‡¸åŒ…
     //hull.reconstruct(*hull_cloud);
 
     //pcl::io::savePCDFileBinary("myhull.pcd", *hull_cloud);
@@ -45,9 +45,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr computeConvexHull(const pcl::PointCloud<pcl:
 
     //return th.hull_points;
         
-    // »ñÈ¡µ±Ç°Ïß³ÌµÄÎ¨Ò»±êÊ¶·û
+    // èŽ·å–å½“å‰çº¿ç¨‹çš„å”¯ä¸€æ ‡è¯†ç¬¦
     std::thread::id threadId = std::this_thread::get_id();
-    // ´´½¨ DLL ÎÄ¼þÃû£¬ÒÔ threadId ÃüÃû
+    // åˆ›å»º DLL æ–‡ä»¶åï¼Œä»¥ threadId å‘½å
     std::string dllFileName = "./czxToolkit/czxToolkit_" + to_string((unsigned int)&threadId) + ".dll";
 
     arsenal::copyFile_czx("czxToolkit.dll", dllFileName);
@@ -285,7 +285,7 @@ int main()
     vector<double> flatnesses_pso, flatnesses_mls;
     for (int i=6500;i>=1000;i-=500)
     {
-        cout << "µãÊýÄ¿" << i << "Íò" << endl;
+        cout << "ç‚¹æ•°ç›®" << i << "ä¸‡" << endl;
         cloud->resize(i * 10000);
         auto start = std::chrono::system_clock::now();
         flatnesses_mls.push_back(MLSFlatness(cloud));

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include<queue>
 #include<vector>
 
@@ -8,18 +8,18 @@ public:
     float threshold;
 private:
     std::vector<float> buffer;
-    int capacity;       // »º³åÇøµÄ×î´óÈİÁ¿
-    int count;          // µ±Ç°»º³åÇøÖĞµÄÔªËØÊıÁ¿
-    int head;           // Ö¸Ïò×îÔç²åÈëµÄÊı¾İ
-    float sum;          // »º³åÇøÄÚËùÓĞÔªËØµÄ×ÜºÍ
+    int capacity;       // ç¼“å†²åŒºçš„æœ€å¤§å®¹é‡
+    int count;          // å½“å‰ç¼“å†²åŒºä¸­çš„å…ƒç´ æ•°é‡
+    int head;           // æŒ‡å‘æœ€æ—©æ’å…¥çš„æ•°æ®
+    float sum;          // ç¼“å†²åŒºå†…æ‰€æœ‰å…ƒç´ çš„æ€»å’Œ
 
 public:
-    // ¹¹Ôìº¯Êı
+    // æ„é€ å‡½æ•°
     CircularBuffer(int size) : capacity(size), count(0), head(0), sum(0.0f), threshold(0.1f){
         buffer.resize(capacity);
     }
 
-    // Ïò»º³åÇøÌí¼ÓÔªËØ
+    // å‘ç¼“å†²åŒºæ·»åŠ å…ƒç´ 
     void add(float value) {
         if (count != 0 && abs(end()-value)>threshold)
         {
@@ -34,11 +34,11 @@ public:
             count++;
         }
         else {
-            // µ±»º³åÇøÒÑÂú£¬Ìæ»»×îÔçµÄÔªËØ
+            // å½“ç¼“å†²åŒºå·²æ»¡ï¼Œæ›¿æ¢æœ€æ—©çš„å…ƒç´ 
             sum -= buffer[head];
             buffer[head] = value;
             sum += value;
-            head = (head + 1) % capacity; // ÒÆ¶¯Í·Ö¸Õë
+            head = (head + 1) % capacity; // ç§»åŠ¨å¤´æŒ‡é’ˆ
         }
     }
 
@@ -48,13 +48,13 @@ public:
         return buffer[count - 1];
     }
 
-    // ¼ÆËã»º³åÇøÄÚËùÓĞÔªËØµÄÆ½¾ùÖµ
+    // è®¡ç®—ç¼“å†²åŒºå†…æ‰€æœ‰å…ƒç´ çš„å¹³å‡å€¼
     float average() const {
-        if (count == 0) return 0.0;  // ·ÀÖ¹³ıÒÔÁã
+        if (count == 0) return 0.0;  // é˜²æ­¢é™¤ä»¥é›¶
         return sum / count;
     }
 
-    // ´òÓ¡»º³åÇøµÄÄÚÈİ£¨µ÷ÊÔÓÃ£©
+    // æ‰“å°ç¼“å†²åŒºçš„å†…å®¹ï¼ˆè°ƒè¯•ç”¨ï¼‰
     void print() const {
         std::cout << "Buffer contents: ";
         for (int i = 0; i < count; ++i) {

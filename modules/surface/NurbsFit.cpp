@@ -1,4 +1,4 @@
-#include "NurbsFit.h"
+﻿#include "NurbsFit.h"
 
 NurbsFit::NurbsFit(NurbsDataSurface* m_data, const NurbsSurface& ns)
 {

@@ -1,4 +1,4 @@
-#include"czxTool.h"
+ï»¿#include"czxTool.h"
 #include<pcl/surface/on_nurbs/fitting_surface_pdm.h>
 #include<pcl/common/pca.h>
 #include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
@@ -91,10 +91,10 @@ CP surfaceFilter(CP cloud, unordered_map<string, string> config)
 	//	cloud_2d->points[i].y = cloud->points[i].y;
 	//}
 
-	//// ´´½¨ KdTree2D¶ÔÏó
+	//// åˆ›å»º KdTree2Då¯¹è±¡
 	//pcl::KdTreeFLANN<pcl::PointXY> kdtree;
 	//{
-	//	CzxTimer _("½¨Ê÷");
+	//	CzxTimer _("å»ºæ ‘");
 	//	kdtree.setInputCloud(cloud_2d);
 	//}
 	//float radius = stof(config["radius_1"]);
@@ -105,9 +105,9 @@ CP surfaceFilter(CP cloud, unordered_map<string, string> config)
 	//#pragma omp parallel for
 	//for (int i = 0; i < cloud->size(); ++i)
 	//{
-	//	pcl::PointXY searchPoint = cloud_2d->points[i]; // µ±Ç°µã
-	//	std::vector<int> pointIdxNKNSearch; // ÓÃÓÚ´æ´¢×î½üÁÚµãµÄË÷Òı
-	//	std::vector<float> pointNKNSquaredDistance; // ÓÃÓÚ´æ´¢×î½üÁÚµãµÄ¾àÀëµÄÆ½·½
+	//	pcl::PointXY searchPoint = cloud_2d->points[i]; // å½“å‰ç‚¹
+	//	std::vector<int> pointIdxNKNSearch; // ç”¨äºå­˜å‚¨æœ€è¿‘é‚»ç‚¹çš„ç´¢å¼•
+	//	std::vector<float> pointNKNSquaredDistance; // ç”¨äºå­˜å‚¨æœ€è¿‘é‚»ç‚¹çš„è·ç¦»çš„å¹³æ–¹
 	//	if (kdtree.radiusSearch(searchPoint, radius, pointIdxNKNSearch, pointNKNSquaredDistance) > threshold)
 	//	{
 	//		#pragma omp critical
@@ -125,7 +125,7 @@ CP surfaceFilter(CP cloud, unordered_map<string, string> config)
 void main()
 {
 	//pcl::io::loadPCDFile("sb.pcd", *cloud);
-	auto path_list = arsenal::pathGather("»¡Ãæ/", "*.pcd");
+	auto path_list = arsenal::pathGather("å¼§é¢/", "*.pcd");
 
 
 
@@ -151,7 +151,7 @@ void main()
 		CP cloud(new CloudT);
 		pcl::io::loadPCDFile(file_path, *cloud);
 
-		//cout << "ÂÖÀª¶È: " << surfaceProfile(cloud, 12);
+		//cout << "è½®å»“åº¦: " << surfaceProfile(cloud, 12);
 		//continue;
 
 		{

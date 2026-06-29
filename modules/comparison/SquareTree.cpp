@@ -1,4 +1,4 @@
-#include "SquareTree.h"
+﻿#include "SquareTree.h"
 
 #define cpe cloud->points[cloud->size()-1]
 #define cp(i) cloud->points[i]

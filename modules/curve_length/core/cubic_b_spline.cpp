@@ -1,4 +1,4 @@
-#include "cubic_b_spline.h"
+ï»¿#include "cubic_b_spline.h"
 #include <fstream>
 
 #include <ANN/ANN.h>
@@ -38,7 +38,7 @@ void CubicBSplineCurve::setNewControl( const vector<Vector2d>& controlPs, bool v
 //************************************
 // Method:    getPos
 // Returns:   Eigen::Vector2d
-// Function:  ¹«Ê½B(t)µÄÕ¹¿ªĞÎÊ½
+// Function:  å…¬å¼B(t)çš„å±•å¼€å½¢å¼
 // Time:      2014/08/05
 // Author:    Qian
 //************************************

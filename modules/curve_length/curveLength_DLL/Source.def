@@ -1,4 +1,4 @@
-LIBRARY curveLength_DLL
+﻿LIBRARY curveLength_DLL
 
 EXPORTS
 getLength

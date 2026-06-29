@@ -1,4 +1,4 @@
-#include "HullBase.h"
+ï»¿#include "HullBase.h"
 Facet::~Facet()
 {
     if (outsideSet != nullptr) {
@@ -59,7 +59,7 @@ PointIterator Facet::furthestVertex()
     PointIterator furthest = outsideSet->begin();
     //Vector3f normal = (vertex[0].getVector3fMap() - vertex[1].getVector3fMap()).cross(vertex[0].getVector3fMap() - vertex[2].getVector3fMap());
 
-    //ÕâÀï²»ÊÇÕæÕıµÄ¾àÀë,ÒòÎªÃ»ÓĞ¿¼ÂÇdµÄ´æÔÚ
+    //è¿™é‡Œä¸æ˜¯çœŸæ­£çš„è·ç¦»,å› ä¸ºæ²¡æœ‰è€ƒè™‘dçš„å­˜åœ¨
     double dis_max = normal.dot(furthest->getVector3fMap());
     for (PointIterator iter = outsideSet->begin(); iter != outsideSet->end(); iter++)
     {

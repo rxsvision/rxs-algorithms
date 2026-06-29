@@ -1,4 +1,4 @@
-#ifndef RXS_VOLUME_H
+﻿#ifndef RXS_VOLUME_H
 #define RXS_VOLUME_H
 
 /**

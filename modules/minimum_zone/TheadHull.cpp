@@ -1,4 +1,4 @@
-#include "TheadHull.h"
+ï»¿#include "TheadHull.h"
 
 ThreadHull::ThreadHull(int tn, CP cloud)
 {
@@ -15,7 +15,7 @@ ThreadHull::ThreadHull(int tn, CP cloud)
 
 void ThreadHull::initTetrahedron()
 {
-    //ÕÒ³öËÄ¸ö³õÊ¼µã
+    //æ‰¾å‡ºå››ä¸ªåˆå§‹ç‚¹
     list<PointT>::iterator tetrahedron_vertex[4];
     tetrahedron_vertex[0] = tetrahedron_vertex[1] = tetrahedron_vertex[2] = tetrahedron_vertex[3] = points.begin();
     for (auto cur = points.begin(); cur != points.end(); cur++)
@@ -55,7 +55,7 @@ void ThreadHull::initTetrahedron()
     Pend_facets.push_back(f3);
     Pend_facets.push_back(f4);
 
-    //±éÀúËÄÃæÌåÃ¿¸öµã,±éÀúÎ´·ÖÅäµÄµã,ÆÀ¹ÀÊÇ·ñÊÇÃæµÄÍâ²¿µã¼¯
+    //éå†å››é¢ä½“æ¯ä¸ªç‚¹,éå†æœªåˆ†é…çš„ç‚¹,è¯„ä¼°æ˜¯å¦æ˜¯é¢çš„å¤–éƒ¨ç‚¹é›†
     PointIterator tmp_iter;
     for (auto& facet : Pend_facets)
     {
@@ -83,7 +83,7 @@ void ThreadHull::distribution(FacetPtr facet)
         return ;
     }
     
-    //ÕÒ³ö×îÔ¶µã
+    //æ‰¾å‡ºæœ€è¿œç‚¹
     auto furthest = facet->furthestVertex();
     PointT furthest_point = *furthest;
     mutex_points.lock();
@@ -92,7 +92,7 @@ void ThreadHull::distribution(FacetPtr facet)
     facet->outsideSet->erase(furthest);
     
 
-    //¹¹ÔìĞÂÃæ
+    //æ„é€ æ–°é¢
     FacetList new_facet;
     FacetPtr f0(new Facet(facet->vertex[0], facet->vertex[1], furthest_point, facet->vertex[2]));
     new_facet.push_back(f0);
@@ -102,7 +102,7 @@ void ThreadHull::distribution(FacetPtr facet)
     new_facet.push_back(f2);
 
 
-    //·ÖÅäµã
+    //åˆ†é…ç‚¹
     PointIterator tmp_iter;
     for (auto& f : new_facet)
     {

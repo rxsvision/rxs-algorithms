@@ -1,4 +1,4 @@
-#pragma  once
+ï»¿#pragma  once
 
 
 /********************************************************************
@@ -134,9 +134,9 @@ private:
 
 
 private:
-	double interal_;                //²ÉÑùµãµÄ¼ä¸ô
-	std::vector<Vector2d> controls_;    //ÇúÏßµÄ¿ØÖÆµã
-	std::vector<Vector2d> positions_;   //ÇúÏßÉÏµÄ²ÉÑùµã
+	double interal_;                //é‡‡æ ·ç‚¹çš„é—´éš”
+	std::vector<Vector2d> controls_;    //æ›²çº¿çš„æŽ§åˆ¶ç‚¹
+	std::vector<Vector2d> positions_;   //æ›²çº¿ä¸Šçš„é‡‡æ ·ç‚¹
 
 };
 

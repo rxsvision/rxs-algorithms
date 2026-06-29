@@ -1,4 +1,4 @@
-#include"Hole.h"
+ï»¿#include"Hole.h"
 #include<vector>
 #include <pcl/filters/passthrough.h>
 #include <pcl/registration/transformation_estimation_svd.h>
@@ -129,7 +129,7 @@ void main()
 
     //    do
     //    {
-    //        //ÕÒµ½µÄÎÄ¼şµÄÎÄ¼şÃû
+    //        //æ‰¾åˆ°çš„æ–‡ä»¶çš„æ–‡ä»¶å
     //        string szPath;
     //        szPath = root + string(fileinfo.name);
     //        path_list.push_back(szPath);

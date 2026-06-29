@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include<Eigen/Dense>
 #include"czxTool.h"
@@ -102,7 +102,7 @@ public:
 	}
 
 	NurbsSurface();
-	// ¿½±´¹¹Ôìº¯Êı
+	// æ‹·è´æ„é€ å‡½æ•°
 	NurbsSurface(const NurbsSurface& other);
 	NurbsSurface& operator=(const NurbsSurface& other);
 

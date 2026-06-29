@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file hole_depth.cpp
  * @brief Hole depth measurement algorithm implementation
  *

@@ -1,4 +1,4 @@
-#include "MultipleDllConvex.h"
+﻿#include "MultipleDllConvex.h"
 
 MultipleDllConvex::MultipleDllConvex(int thread_num_in)
 {
