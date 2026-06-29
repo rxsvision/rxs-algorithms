@@ -1,0 +1,66 @@
+# RXS C++ Build Artifacts
+x64/
+x86/
+Debug/
+Release/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.filters
+*.vcxproj.user
+packages/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CMakeSettings.json
+*.cmake
+
+# vcpkg
+vcpkg_installed/
+
+# Qt
+*.qmlc
+*.qmltc
+*.qml.tqtc
+qrc_*.cpp
+moc_*.cpp
+moc_*.h
+ui_*.h
+*.qrc.depends
+
+# Build output
+build/
+out/
+bin/
+lib/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Test data (managed by Git LFS)
+*.pcd
+*.ply
+*.stl
+*.obj
+*.gltf

@@ -1,0 +1,95 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor:             Suzhou Ruixin Vision Technology Co., Ltd. (苏州锐新视科技有限公司)
+Licensed Work:        RXS Toolkit (rxs-toolkit) and associated algorithm modules
+Initial Developer:    Suzhou Ruixin Vision Technology Co., Ltd.
+Change Date:          2030-01-01
+Change License:       GNU General Public License v2.0 (GPLv2)
+
+License Terms
+
+The Business Source License (BSL) is a source-available license that allows
+use of the Licensed Work for non-production purposes (including development,
+testing, evaluation, and internal use) without payment. Production use,
+commercial distribution, or integration into commercial products requires
+a separate commercial license from the Licensor.
+
+1. Definitions
+
+   "Licensor" means Suzhou Ruixin Vision Technology Co., Ltd.
+
+   "Licensed Work" means the RXS Toolkit software, including all source code,
+   header files, build scripts, and associated documentation provided under
+   this license.
+
+   "Production Use" means any use of the Licensed Work in a live operating
+   environment, including but not limited to:
+   (a) Deployment in manufacturing inspection systems
+   (b) Integration into commercial products or services
+   (c) Use in revenue-generating operations
+   (d) Distribution to third parties as part of a product or service
+
+   "Non-Production Use" means use of the Licensed Work for development,
+   testing, evaluation, academic research, or internal evaluation purposes
+   that does not generate revenue or serve as part of a production system.
+
+   "Change Date" means the date specified in the Parameters section, after
+   which the Licensed Work becomes available under the Change License.
+
+   "Change License" means the license under which the Licensed Work becomes
+   available after the Change Date.
+
+2. Grant of Rights
+
+   2.1 Non-Production Use
+   Subject to the terms and conditions of this License, the Licensor hereby
+   grants you a non-exclusive, worldwide, royalty-free, non-transferable
+   license to use, copy, modify, and distribute the Licensed Work for
+   Non-Production Use.
+
+   2.2 Production Use
+   Production Use of the Licensed Work requires a separate Commercial License
+   from the Licensor. Contact: rain3dmetrology@gmail.com
+
+   2.3 Change Date
+   On or after the Change Date, the Licensed Work will automatically become
+   available under the Change License (GPLv2), at which point you may use,
+   modify, and distribute the Licensed Work under the terms of GPLv2.
+
+3. Restrictions
+
+   3.1 You may not use the Licensed Work for Production Use without a valid
+       Commercial License from the Licensor before the Change Date.
+
+   3.2 You may not sublicense or assign this License without prior written
+       consent from the Licensor.
+
+   3.3 You must retain all copyright, patent, trademark, and attribution
+       notices present in the Licensed Work.
+
+   3.4 You may not use the Licensed Work in violation of applicable laws or
+       regulations, including but not limited to export control laws.
+
+4. Disclaimer
+
+   THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE LICENSED WORK OR THE USE OR OTHER
+   DEALINGS IN THE LICENSED WORK.
+
+5. Commercial Licensing
+
+   For Commercial License inquiries, contact:
+   Email: rain3dmetrology@gmail.com
+   Company: Suzhou Ruixin Vision Technology Co., Ltd. (苏州锐新视科技有限公司)
+
+---
+
+This license is based on the Business Source License 1.1 as published by
+MariaDB Corporation Ab (https://mariadb.com/bsl11/). The parameters above
+are specific to the RXS Toolkit project.
