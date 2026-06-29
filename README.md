@@ -22,7 +22,7 @@ Phase 0 已完成自研算子 vs PCL/Open3D 对比分析：
 - 11 个独有算法 (PCL/Open3D 无对应)
 - 2 个薄包装 (computeConvexHull=直接调PCL, registration=独有+SVD调PCL)
 - 2 个建议完善 (volume→凸包积分, Flatness→RMSE)
-- 1 个幽灵引用 (holeDeepth, 已在 rxs-toolkit 文档)
+- 1 个幽灵引用 (holeDeepth, 已于 2026-06-29 从所有消费者代码中清除)
 
 ## 许可证
 
