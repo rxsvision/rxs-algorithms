@@ -57,5 +57,5 @@
 
 ## 联系方式
 
-- 安全邮箱：`security@rxsvision.com`（请替换为实际邮箱）
+- 安全邮箱：rain3dmetrology@gmail.com
 - 组织：rxsvision（锐新视算法库重构项目）
