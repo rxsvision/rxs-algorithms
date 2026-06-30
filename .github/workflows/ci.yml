@@ -19,8 +19,15 @@ jobs:
         shell: powershell
         run: |
           $bad = @()
+          $excludeDirs = @('.git', '.vs', '.vscode', 'vcpkg_installed', 'build', 'out', '.workbuddy')
           $files = Get-ChildItem -Recurse -Include "*.cpp","*.h","*.hpp","*.txt","*.cmake" -File |
-            Where-Object { $_.FullName -notmatch '\.(git|vs|vscode|vcpkg_installed|build|out)\' }
+            Where-Object {
+              $ok = $true
+              foreach ($d in $excludeDirs) {
+                if ($_.FullName -match [System.Text.RegularExpressions.Regex]::Escape($d)) { $ok = $false; break }
+              }
+              $ok
+            }
           foreach ($f in $files) {
               $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
               # Accept UTF-8 BOM
