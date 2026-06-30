@@ -51,7 +51,8 @@ jobs:
           cmake -B build -S . -G "Visual Studio 18 2026" -A x64 ^
             -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
             -DVCPKG_TARGET_TRIPLET=x64-windows ^
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DRXS_BUILD_SURFACE=OFF
 
       - name: Build
         shell: cmd

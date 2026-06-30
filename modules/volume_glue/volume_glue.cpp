@@ -4,6 +4,8 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/common/common.h>
 #include <pcl/common/centroid.h>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include <cmath>
 #include <algorithm>
 
