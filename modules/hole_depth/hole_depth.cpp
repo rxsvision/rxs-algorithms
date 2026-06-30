@@ -149,7 +149,7 @@ std::vector<CP> clusterHoles(CP sparsePoints, double clusterTolerance = 1.0) {
     for (const auto& idx : clusterIndices) {
         CP hole(new CloudT);
         extract.setInputCloud(sparsePoints);
-        extract.setIndices(boost::make_shared<const pcl::PointIndices>(idx));
+        extract.setIndices(std::make_shared<const pcl::PointIndices>(idx));
         extract.setNegative(false);
         extract.filter(*hole);
         holes.push_back(hole);

@@ -31,6 +31,8 @@
 #ifdef _WIN32
     #ifdef HOLE_DEPTH_BUILD_DLL
         #define HOLE_DEPTH_API __declspec(dllexport)
+    #elif defined(HOLE_DEPTH_STATIC)
+        #define HOLE_DEPTH_API
     #else
         #define HOLE_DEPTH_API __declspec(dllimport)
     #endif

@@ -6,6 +6,7 @@
 #include <pcl/surface/convex_hull.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/common/common.h>
+#include <pcl/common/distances.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 

@@ -39,6 +39,8 @@ if(HOLE_DEPTH_BUILD_SHARED)
         WINDOWS_EXPORT_ALL_SYMBOLS ON
     )
     target_compile_definitions(rxs_hole_depth PRIVATE HOLE_DEPTH_BUILD_DLL)
+else()
+    target_compile_definitions(rxs_hole_depth PUBLIC HOLE_DEPTH_STATIC)
 endif()
 
 # ---------------------------------------------------------------------------
