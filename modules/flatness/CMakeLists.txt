@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ---------------------------------------------------------------------------
 # Dependencies: PCL
 # ---------------------------------------------------------------------------
-find_package(PCL REQUIRED COMPONENTS common io filters segmentation surface kdtree search)
+find_package(PCL REQUIRED COMPONENTS common io filters segmentation surface kdtree search visualization)
 
 # ---------------------------------------------------------------------------
 # Library target
