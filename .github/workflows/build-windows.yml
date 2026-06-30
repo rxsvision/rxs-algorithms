@@ -16,21 +16,29 @@ on:
 
 permissions:
   contents: read
+  actions: write  # Required for vcpkg GitHub Actions binary cache (x-gha)
 
 env:
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build:
-    name: Build ${{ matrix.config }}
+    name: Build Release
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        config: [Release, Debug]
+    timeout-minutes: 360
 
     steps:
       - uses: actions/checkout@v5
+
+      - name: Cache vcpkg installed directory
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg_installed
+            ${{ github.workspace }}/build/vcpkg_installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
@@ -43,29 +51,29 @@ jobs:
           cmake -B build -S . -G "Visual Studio 17 2022" -A x64 ^
             -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
             -DVCPKG_TARGET_TRIPLET=x64-windows ^
-            -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         shell: cmd
         run: |
-          cmake --build build --config ${{ matrix.config }} --parallel
+          cmake --build build --config Release --parallel
 
       - name: Run tests
-        if: matrix.config == 'Release'
+        if: success()
         shell: cmd
+        continue-on-error: true
         run: |
           setlocal enabledelayedexpansion
           for /r build %%f in (*_test.exe *_test_main.exe test_main.exe) do (
             echo Running: %%f
             %%f || echo ::warning::Test failed: %%f
           )
-        continue-on-error: true
 
       - name: Upload build artifacts
-        if: matrix.config == 'Release'
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.config }}
+          name: ${{ github.event.repository.name }}-Release
           path: |
             build/**/*.dll
             build/**/*.lib

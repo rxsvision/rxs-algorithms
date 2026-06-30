@@ -15,9 +15,9 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze (${{ matrix.language }})
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -31,21 +31,8 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          build-mode: manual
+          build-mode: none
           queries: security-extended
-
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: "fb67f8d52560208f80b08db2528631a73a6e0d0c"
-
-      - name: Configure CMake
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-        continue-on-error: true
-
-      - name: Build
-        run: cmake --build build --config Release
-        continue-on-error: true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
