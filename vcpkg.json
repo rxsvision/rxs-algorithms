@@ -5,8 +5,7 @@
     "dependencies": [
         {
             "name": "pcl",
-            "version>=": "1.14.0",
-            "features": ["visualization"]
+            "version>=": "1.14.0"
         },
         {
             "name": "opencv4",

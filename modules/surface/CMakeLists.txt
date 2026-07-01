@@ -5,7 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- Dependencies ---
-find_package(PCL REQUIRED COMPONENTS common io filters segmentation surface kdtree search visualization)
+find_package(PCL REQUIRED COMPONENTS common io filters segmentation surface kdtree search)
+
+# Optional: PCL visualization (VTK-based) — only when RXS_ENABLE_VISUALIZATION=ON
+if(RXS_ENABLE_VISUALIZATION)
+    find_package(PCL COMPONENTS visualization)
+    if(PCL_visualization_FOUND)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE RXS_HAS_VISUALIZATION)
+    endif()
+endif()
 find_package(Eigen3 REQUIRED)
 
 find_package(OpenMP REQUIRED)

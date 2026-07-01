@@ -1,4 +1,4 @@
-﻿//#pragma once
+//#pragma once
 #ifndef CZXTOOL_HPP
 #define CZXTOOL_HPP
 #include<map>
@@ -9,7 +9,9 @@
 #include<iostream>
 #include <time.h>
 #include <unordered_map>
+#ifdef RXS_HAS_VISUALIZATION
 #include<pcl/visualization/pcl_visualizer.h>
+#endif
 #include<pcl/io/pcd_io.h>
 #include<pcl/filters/extract_indices.h>
 #include <pcl/filters/passthrough.h>
@@ -245,6 +247,7 @@ public:
 class Tool
 {
 public:
+#ifdef RXS_HAS_VISUALIZATION
 	void selectWindow(string file_name);
 
 	static void show(CloudT::Ptr clo);
@@ -325,6 +328,7 @@ public:
 	static void showComparison(CloudT::Ptr c1, CloudT::Ptr c2, bool coor);
 	void showComparison(CloudNT::Ptr c1, CloudT::Ptr c2);
 	void showComparison(CloudCT::Ptr c1, CloudCT::Ptr c2);
+#endif // RXS_HAS_VISUALIZATION
 
 	void saveMatrix4f(Eigen::Matrix4f data, string filename);
 	Eigen::Matrix4f readMatrix4f(string filename);
@@ -332,15 +336,19 @@ public:
 	static CloudT::Ptr removeInvalid(CloudT::Ptr cloud);
 
 private:
+#ifdef RXS_HAS_VISUALIZATION
 	pcl::visualization::PCLVisualizer* viewer;
-	static std::mutex mtx_showComparison_ccss; // 创建互斥锁
+	static std::mutex mtx_showComparison_ccss;
+#endif // 创建互斥锁
 };
 
+#ifdef RXS_HAS_VISUALIZATION
 struct CloudAndView
 {
 	pcl::visualization::PCLVisualizer* v;
 	CloudT::Ptr c;
 };
+#endif
 
 class CzxComparison
 {
@@ -352,8 +360,10 @@ public:
 	}
 	~CzxComparison()
 	{
+#ifdef RXS_HAS_VISUALIZATION
 		if (visual)
 			Tool::showComparison(before, after, s1, s2);
+#endif
 	}
 	bool visual;
 private:
