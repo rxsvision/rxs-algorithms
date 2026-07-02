@@ -4,6 +4,24 @@ project(rxs-algorithms LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Visualization support (PCLVisualizer / VTK) — OFF by default for CI.
+# Enable locally with -DRXS_ENABLE_VISUALIZATION=ON for debug visualization.
+option(RXS_ENABLE_VISUALIZATION "Enable PCL visualization support (requires VTK)" OFF)
+
+# PCL on_nurbs module (removed in PCL 1.14+)
+find_package(PCL REQUIRED COMPONENTS common)
+include(CheckIncludeFileCXX)
+set(CMAKE_REQUIRED_INCLUDES ${PCL_INCLUDE_DIRS})
+check_include_file_cxx("pcl/surface/on_nurbs/fitting_curve_2d_apdm.h" RXS_HAS_PCL_ON_NURBS)
+unset(CMAKE_REQUIRED_INCLUDES)
+if(RXS_HAS_PCL_ON_NURBS)
+    message(STATUS "  PCL on_nurbs:     AVAILABLE")
+else()
+    message(STATUS "  PCL on_nurbs:     NOT FOUND (curve_length and surface disabled)")
+    set(RXS_BUILD_CURVE_LENGTH OFF CACHE BOOL "Disabled: PCL on_nurbs not available" FORCE)
+    set(RXS_BUILD_SURFACE OFF CACHE BOOL "Disabled: PCL on_nurbs not available" FORCE)
+endif()
+
 # Algorithm modules — each can be built independently
 option(RXS_BUILD_ALL "Build all algorithm modules" OFF)
 option(RXS_BUILD_CURVE_LENGTH "Build curve_length module" ON)

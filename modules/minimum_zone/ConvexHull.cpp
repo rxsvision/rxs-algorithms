@@ -21,14 +21,14 @@ bool ConvexHull::quickHull(Hull& ret)
     //遍历四面体每个点,遍历未分配的点,评估是否是面的外部点集
     for (auto& facet: facets)
     {
-        Plane plane(facet);
+        Plane plane(*facet);
         for (auto cur_iter=all_vertex.begin(); cur_iter!=all_vertex.end();)
         {
             if (plane.isOnPositiveSide(*cur_iter))
             {
                 tmp_iter = cur_iter;
                 tmp_iter++;
-                facet.outsideSet->splice(facet.outsideSet->end(), all_vertex, cur_iter);
+                facet->outsideSet->splice(facet->outsideSet->end(), all_vertex, cur_iter);
                 cur_iter = tmp_iter;
             }
             else
@@ -40,10 +40,12 @@ bool ConvexHull::quickHull(Hull& ret)
     //Facet head;
     for (facet_iter = facets.begin(); facet_iter != facets.end(); facet_iter++)
     {
-        if (facet_iter->outsideSet)
+        if ((*facet_iter)->outsideSet)
             facetPendList.splice(facetPendList.end(), facets, facet_iter);
     }
-        
+
+    // TODO: quickHull iteration not yet implemented — pending facets collected but not processed
+    return false;
 }
 
 FacetList ConvexHull::initTetrahedron(CP cloud)
@@ -85,15 +87,15 @@ FacetList ConvexHull::initTetrahedron(CP cloud)
     //Facet f3(p[0], p[2], p[3]);
     //Facet f4(p[1], p[2], p[3]);
 
-    Facet f1(p[0], p[1], p[2], p[3]);
-    Facet f2(p[0], p[1], p[3], p[2]);
-    Facet f3(p[0], p[2], p[3], p[1]);
-    Facet f4(p[1], p[2], p[3], p[0]);
-    
-    f1.setNeighbor(f2, f4, f3);
-    f2.setNeighbor(f1, f4, f3);
-    f3.setNeighbor(f1, f4, f2);
-    f4.setNeighbor(f1, f3, f2);
+    FacetPtr f1 = std::make_shared<Facet>(p[0], p[1], p[2], p[3]);
+    FacetPtr f2 = std::make_shared<Facet>(p[0], p[1], p[3], p[2]);
+    FacetPtr f3 = std::make_shared<Facet>(p[0], p[2], p[3], p[1]);
+    FacetPtr f4 = std::make_shared<Facet>(p[1], p[2], p[3], p[0]);
+
+    f1->setNeighbor(*f2, *f4, *f3);
+    f2->setNeighbor(*f1, *f4, *f3);
+    f3->setNeighbor(*f1, *f4, *f2);
+    f4->setNeighbor(*f1, *f3, *f2);
 
     ret.push_back(f1);
     ret.push_back(f2);

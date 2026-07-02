@@ -20,6 +20,7 @@ jobs:
         run: |
           $bad = @()
           $excludeDirs = @('.git', '.vs', '.vscode', 'vcpkg_installed', 'build', 'out', '.workbuddy')
+          $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
           $files = Get-ChildItem -Recurse -Include "*.cpp","*.h","*.hpp","*.txt","*.cmake" -File |
             Where-Object {
               $ok = $true
@@ -30,21 +31,26 @@ jobs:
             }
           foreach ($f in $files) {
               $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
-              # Accept UTF-8 BOM
-              if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { continue }
-              # Accept pure ASCII (subset of UTF-8)
-              $hasHigh = $false
-              for ($i = 0; $i -lt [Math]::Min($bytes.Length, 2000); $i++) {
-                  if ($bytes[$i] -ge 0x80) { $hasHigh = $true; break }
+              # Empty files are trivially valid
+              if ($bytes.Length -eq 0) { continue }
+              # Strip UTF-8 BOM if present
+              if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+                  if ($bytes.Length -eq 3) { continue }
+                  $bytes = $bytes[3..($bytes.Length - 1)]
               }
-              if ($hasHigh) { $bad += $f.FullName }
+              # Validate UTF-8: throwOnInvalidBytes=true causes GetString to throw on invalid sequences
+              try {
+                  $null = $utf8Strict.GetString($bytes)
+              } catch {
+                  $bad += $f.FullName
+              }
           }
           if ($bad.Count -gt 0) {
               Write-Host "::error::Found $($bad.Count) non-UTF-8 files:"
               foreach ($f in $bad) { Write-Host "  $f" }
               exit 1
           }
-          Write-Host "::notice::All files are UTF-8. Check passed."
+          Write-Host "::notice::All files are valid UTF-8. Check passed."
 
   cmake-lint:
     name: CMake Lint

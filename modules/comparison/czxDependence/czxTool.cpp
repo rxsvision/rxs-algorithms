@@ -1,4 +1,4 @@
-﻿#include"czxTool.h"
+#include"czxTool.h"
 #include <pcl/common/angles.h>
 #include <pcl/common/common.h>
 #include <pcl/common/distances.h>
@@ -8,6 +8,7 @@
 
 
 string CzxTimer::path = "";
+#ifdef RXS_HAS_VISUALIZATION
 std::mutex Tool::mtx_showComparison_ccss;
 
 int id = 0;
@@ -27,7 +28,7 @@ selectCatch(const pcl::visualization::AreaPickingEvent& event, void* args)
 
 	CloudT::Ptr selected_cloud(new CloudT);
 	pcl::ExtractIndices<PointT> extract;
-	extract.setIndices(boost::make_shared<pcl::PointIndices>(p_ind));
+	extract.setIndices(std::make_shared<pcl::PointIndices>(p_ind));
 	extract.setInputCloud(cloud_);
 	extract.filter(*selected_cloud);
 
@@ -80,7 +81,9 @@ Tool::show(CloudNT::Ptr clo1)
 }
 
 void
+#ifdef RXS_HAS_VISUALIZATION
 Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2)
+#endif
 {
 	mtx_showComparison_ccss.lock();
 	pcl::visualization::PCLVisualizer viewer;
@@ -94,7 +97,9 @@ Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2)
 }
 
 void
+#ifdef RXS_HAS_VISUALIZATION
 Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, int size1, int size2, function<void(const pcl::visualization::KeyboardEvent&)> callback, string name)
+#endif
 {
 	mtx_showComparison_ccss.lock();
 	pcl::visualization::PCLVisualizer viewer;
@@ -113,7 +118,9 @@ Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, int size1, int size2, funct
 	mtx_showComparison_ccss.unlock();
 }
 
+#ifdef RXS_HAS_VISUALIZATION
 void Tool::showComparison(CloudT::Ptr c1, PointT p2, int size1, int size2, function<void(const pcl::visualization::KeyboardEvent&)> callback, string name)
+#endif
 {
 	CP c2(new CloudT);
 	c2->push_back(p2);
@@ -135,7 +142,9 @@ void Tool::showComparison(CloudT::Ptr c1, PointT p2, int size1, int size2, funct
 }
 
 
+#ifdef RXS_HAS_VISUALIZATION
 void Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, CloudT::Ptr c3, int size1, int size2, int size3, function<void(const pcl::visualization::KeyboardEvent&)> callback, string name)
+#endif
 {
 	mtx_showComparison_ccss.lock();
 	pcl::visualization::PCLVisualizer viewer;
@@ -159,7 +168,9 @@ void Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, CloudT::Ptr c3, int si
 }
 
 void
+#ifdef RXS_HAS_VISUALIZATION
 Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, bool coor)
+#endif
 {
 	pcl::visualization::PCLVisualizer viewer("PCL Viewer");
 	viewer.setBackgroundColor(0.5, 0.5, 0.5);
@@ -178,7 +189,9 @@ Tool::showComparison(CloudT::Ptr c1, CloudT::Ptr c2, bool coor)
 
 
 void
+#ifdef RXS_HAS_VISUALIZATION
 Tool::showComparison(CloudCT::Ptr c1, CloudCT::Ptr c2)
+#endif
 {
 	pcl::visualization::PCLVisualizer viewer;
 	viewer.addPointCloud(c1, "1");
@@ -187,7 +200,9 @@ Tool::showComparison(CloudCT::Ptr c1, CloudCT::Ptr c2)
 }
 
 void
+#ifdef RXS_HAS_VISUALIZATION
 Tool::showComparison(CloudNT::Ptr c1, CloudT::Ptr c2)
+#endif
 {
 	pcl::visualization::PCLVisualizer viewer;
 	CloudT::Ptr clo1(new CloudT);
@@ -198,6 +213,7 @@ Tool::showComparison(CloudNT::Ptr c1, CloudT::Ptr c2)
 	viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0, 1, 0, "2");
 	viewer.spin();
 }
+#endif // RXS_HAS_VISUALIZATION
 
 void
 Tool::saveMatrix4f(Eigen::Matrix4f data, string filename)
@@ -287,7 +303,9 @@ namespace arsenal
 			//std::cout << inverted << std::endl;
 			ret->getMatrixXfMap(3, 4, 0).row(i) = inverted.real();
 		}
+		#ifdef RXS_HAS_VISUALIZATION
 		Tool::showComparison(cloud, ret);
+		#endif
 	}
 	vector<string> pathGather(string root, string file)
 	{
@@ -470,12 +488,16 @@ namespace arsenal
 
 		if (dif2to1->size() > 0)
 		{
+			#ifdef RXS_HAS_VISUALIZATION
 			Tool::showComparison(c1, c2, dif2to1, 2, 2, 4);
+			#endif
 			//pcl::io::savePCDFileBinary("dif21.pcd", *dif2to1);
 		}
 		if (dif1to2->size() > 0)
 		{
+			#ifdef RXS_HAS_VISUALIZATION
 			Tool::showComparison(c1, c2, dif1to2, 2, 2, 4);
+			#endif
 			//pcl::io::savePCDFileBinary("dif12.pcd", *dif1to2);
 
 		}

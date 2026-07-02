@@ -1,10 +1,11 @@
-﻿//#include"czxTool.h"
+//#include"czxTool.h"
 #include"czxDependence/czxTool.h"
 #include <pcl/kdtree/kdtree_flann.h>
 #include<pcl/filters/passthrough.h>
 #include <iostream>
 #include <fstream>
 #include <pcl/common/distances.h>
+#include <pcl/common/angles.h>
 #include<pcl/common/pca.h>
 #include"SquareTree.h"
 #include"utlis.hpp"
@@ -47,7 +48,9 @@ CP filterCurveNoise(CP cloud)
             ret->push_back(cp(i));
         }
     }
+    #ifdef RXS_HAS_VISUALIZATION
     Tool::showComparison(cloud, ret);
+    #endif
     return ret;
 }
 
@@ -170,7 +173,9 @@ void comparisonKeyence(CP c1, CP c2, float threshold)
 
     if (dif2to1->size() > 0)
     {
+        #ifdef RXS_HAS_VISUALIZATION
         Tool::showComparison(c1, c2, dif2to1, 2, 2, 5);
+        #endif
     }
     //if (dif1to2->size() > 0)
     //{
@@ -366,12 +371,16 @@ CP FilterByTruningPoint(CP cloud, int radius)
         if (angle_global > 90)
             angle_global = 180 - angle_global;
         #ifdef CZX_DEBUG
+        #ifdef RXS_HAS_VISUALIZATION
         Tool::showComparison(cloud, right);
+        #endif
         #endif
         if (angle > angle_threshold&& angle_global< angle_threshold_global)
         {
             #ifdef CZX_DEBUG
+            #ifdef RXS_HAS_VISUALIZATION
             Tool::showComparison(cloud, right);
+            #endif
             #endif
             break;
         }
@@ -405,7 +414,9 @@ CP FilterByTruningPoint(CP cloud, int radius)
         if (angle > angle_threshold&& angle_global < angle_threshold_global)
         {
             #ifdef CZX_DEBUG
+            #ifdef RXS_HAS_VISUALIZATION
             Tool::showComparison(cloud, left);
+            #endif
             #endif
             break;
         }
@@ -667,12 +678,16 @@ vector<double> comparisonTwoCloud(CP source, CP target)
     if (model_left.x - source_left.x < min_dif_debug)
     {
         source->getMatrixXfMap(3, 4, 0).colwise() -= Vector3f(0, max_dif_y, 0);
+        #ifdef RXS_HAS_VISUALIZATION
         Tool::showComparison(target, source);
+        #endif
     }
     if (model_left.x - source_left.x > max_dif_debug)
     {
         source->getMatrixXfMap(3, 4, 0).colwise() -= Vector3f(0, max_dif_y, 0);
+        #ifdef RXS_HAS_VISUALIZATION
         Tool::showComparison(target, source);
+        #endif
 }
     #endif
 
@@ -814,7 +829,11 @@ void save3D(string root, string file_name, CP filter_func(CP)=nullptr)
         else
             *cloud_filtered = *cloud_ori;
         if (conf["root"].find("debug") != std::string::npos)
+        {
+#ifdef RXS_HAS_VISUALIZATION
             Tool::showComparison(cloud_ori, cloud_filtered);
+#endif
+        }
         vector<double> ret;
         {
             CzxComparison __(cloud_filtered);
@@ -1131,7 +1150,9 @@ CP processForPrecitec(CP cloud)
     //ret = filterInvalid(ret);
 
     #ifdef CZX_DEBUG
+    #ifdef RXS_HAS_VISUALIZATION
     Tool::showComparison(cloud, ret);
+    #endif
     #endif
 
     return ret;
@@ -1191,7 +1212,9 @@ CP filterJump(CP cloud)
         }
     }
     #ifdef CZX_DEBUG
+    #ifdef RXS_HAS_VISUALIZATION
     Tool::showComparison(cloud, ret);
+    #endif
     #endif
     return ret;
 }
@@ -1360,7 +1383,11 @@ vector<pair<string, float>> save2D(string root, string file_name, vector<CP(*)(C
     //    comparisonKeyence(max_cloud, min_cloud, 0.01);
     *max_boundary += *min_boundary;
     if ((ret_max[0] - ret_min[0]) / 0.2 * 100 > 20)
+    {
+        #ifdef RXS_HAS_VISUALIZATION
         Tool::showComparison(max_cloud, min_cloud, max_boundary,1,1,3);
+        #endif
+    }
     //if ((ret_max[1] - ret_min[1]) / 0.2 * 100 > 25)
     //    comparisonKeyence(max_cloud, min_cloud, 0.01);
     return max_min_ret;
@@ -1396,7 +1423,7 @@ int main(int argc, char* argv[])
 
     //comparisonKeyence(c1, c2, 0.01);
 
-    HMODULE hDLL = LoadLibrary(L"czxToolkit.dll");
+    HMODULE hDLL = LoadLibraryW(L"czxToolkit.dll");
     typedef vector<double>(__cdecl* VCVVB)(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, bool visual);
     fitBSpline = (VCVVB)GetProcAddress(hDLL,"fitBSpline_");
 

@@ -1,4 +1,4 @@
-﻿#include"czxTool.h"
+#include"czxTool.h"
 #include"Hole.hpp"
 #include"types_.h"
 #include"BSplineLength.h"
@@ -183,7 +183,9 @@ bool filter(CP cloud, float min_angle, bool along_y)
 			tmp->push_back(cloud->points[i - 1]);
 			tmp->push_back(cloud->points[i]);
 			tmp->push_back(cloud->points[i + 1]);
+			#ifdef RXS_HAS_VISUALIZATION
 			Tool::showComparison(cloud, tmp);
+			#endif
 		}
 		if (angle < min_angle)
 		{
@@ -1197,7 +1199,9 @@ double lineProfile(const pcl::on_nurbs::FittingCurve2d& fit, CP cloud)
 		maxErrorPoint.reset(new CloudT);
 		maxErrorPoint->push_back(PointT(fit.m_data->interior[arg_max_error][0], fit.m_data->interior[arg_max_error][1], 0));
 		maxErrorPoint->push_back(PointT(pt.x, pt.y, 0));
+		#ifdef RXS_HAS_VISUALIZATION
 		Tool::showComparison(cloud, nurbsCurve(fit.m_nurbs), maxErrorPoint, 3, 1, 5);
+		#endif
 		//Tool::showComparison(cloud, maxErrorPoint, 2, 5);
 	}
 	#endif
