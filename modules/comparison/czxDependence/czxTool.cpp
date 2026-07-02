@@ -331,13 +331,12 @@ namespace arsenal
 	std::vector<std::string> getSubdirectories(const std::string& directoryPath) {
 		std::vector<std::string> subdirectories;
 
-		boost::filesystem::path directory(directoryPath); // 将输入的字符串路径转换为 Boost 路径对象
+		std::filesystem::path directory(directoryPath);
 
-		if (boost::filesystem::exists(directory) && boost::filesystem::is_directory(directory)) {
-			boost::filesystem::directory_iterator end_itr; // 迭代器结束标志
-			for (boost::filesystem::directory_iterator itr(directory); itr != end_itr; ++itr) {
-				if (boost::filesystem::is_directory(itr->status())) {
-					subdirectories.push_back(itr->path().string()); // 将绝对路径字符串添加到 vector 中
+		if (std::filesystem::exists(directory) && std::filesystem::is_directory(directory)) {
+			for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+				if (entry.is_directory()) {
+					subdirectories.push_back(entry.path().string());
 				}
 			}
 		}

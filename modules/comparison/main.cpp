@@ -6,6 +6,7 @@
 #include <fstream>
 #include <pcl/common/distances.h>
 #include <pcl/common/angles.h>
+#include <pcl/common/common.h>
 #include<pcl/common/pca.h>
 #include"SquareTree.h"
 #include"utlis.hpp"
