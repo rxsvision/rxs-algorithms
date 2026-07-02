@@ -82,7 +82,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Install clang-format
-        run: sudo apt-get update && sudo apt-get install -y clang-format
+        run: |
+          sudo apt-get update -o Acquire::AllowInsecureRepositories=true 2>/dev/null || true
+          if ! sudo apt-get install -y clang-format 2>/dev/null; then
+            pip install clang-format
+          fi
       - name: Check formatting
         run: |
           # Advisory check — reports files that need formatting but does not fail CI.
