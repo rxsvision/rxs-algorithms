@@ -1,4 +1,4 @@
-﻿#include"czxTool.h"
+#include"czxTool.h"
 
 /// <summary>
 /// 
@@ -46,12 +46,14 @@ int main()
     }
 
     ////测试球体积测量    
-    HMODULE hDLL = LoadLibrary(L"czxToolkit.dll");
+    HMODULE hDLL = LoadLibraryW(L"czxToolkit.dll");
     typedef double(__cdecl* MYTYPE)(CP cloud, double xyInterval);
     MYTYPE volume_dll = (MYTYPE)GetProcAddress(hDLL, "volume");
     double sum = volume_dll(cloud, xyInterval);
     cout << sum;
 
+    #ifdef RXS_HAS_VISUALIZATION
     Tool::show(cloud);
+    #endif
 	return 0;
 }
