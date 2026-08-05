@@ -3,7 +3,9 @@
 // PCL
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
+#include <pcl/sample_consensus/sac_model_ellipse3d.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/extract_indices.h>
 
 // Eigen
 #include <Eigen/Eigenvalues>
@@ -13,8 +15,25 @@
 #include <numeric>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
+#include <limits>
+#include <string>
 
 namespace rxs {
+
+// ---------------------------------------------------------------------------
+// Timer (P0-4): lightweight RAII-style high-resolution clock
+// ---------------------------------------------------------------------------
+class Timer {
+public:
+    using clock = std::chrono::high_resolution_clock;
+    void start() { start_ = clock::now(); }
+    double elapsedMs() const {
+        return std::chrono::duration<double, std::milli>(clock::now() - start_).count();
+    }
+private:
+    clock::time_point start_;
+};
 
 // ---------------------------------------------------------------------------
 // Plane frame utilities (from benchmark lines 146-201)
@@ -474,6 +493,7 @@ static bool circleRANSAC(std::vector<Eigen::Vector2f>& points,
 
 // ---------------------------------------------------------------------------
 // Circle segmentation pipeline (from benchmark segmentCircles2D, lines 928-1116)
+//   P0-1: plane_max_iter now parameterized (caller decides via fast_mode)
 // ---------------------------------------------------------------------------
 
 /// Internal segmentation result
@@ -484,27 +504,33 @@ struct SegmentationResult {
     std::vector<std::vector<Eigen::Vector2f>> clusters_2d; // 2D projected points per cluster
     std::vector<Eigen::Vector2f> circle_centers_2d;        // Circle RANSAC centers (LM init)
     std::vector<float> circle_radii;                       // Circle RANSAC radii (LM init)
+    EllipseError error_code = EllipseError::OK;            // P0-1: structured error
     bool success;
 };
 
 /// RANSAC plane + non-plane extraction + voxel + 2D projection + circle RANSAC
+/// @param plane_max_iter  Plane RANSAC max iterations (fast_mode: 2000, default: 5000)
 static SegmentationResult segmentCircles2D(const CP& cloud,
-                                           const EllipseParams& params)
+                                           const EllipseParams& params,
+                                           int plane_max_iter)
 {
     SegmentationResult result;
     result.success = false;
-    if (cloud->empty()) return result;
-
-    // Plane RANSAC parameters (fixed, matching benchmark defaults)
-    const float plane_dist_threshold = 0.05f;
-    const int plane_max_iter = 5000;
+    if (cloud->empty()) {
+        result.error_code = EllipseError::EMPTY_CLOUD;
+        return result;
+    }
 
     // Step 1: RANSAC plane segmentation
+    const float plane_dist_threshold = 0.05f;
     pcl::SampleConsensusModelPlane<PointT>::Ptr plane_model(
         new pcl::SampleConsensusModelPlane<PointT>(cloud));
     pcl::RandomSampleConsensus<PointT> ransac(plane_model, plane_dist_threshold);
     ransac.setMaxIterations(plane_max_iter);
-    if (!ransac.computeModel()) return result;
+    if (!ransac.computeModel()) {
+        result.error_code = EllipseError::PLANE_SEGMENT_FAIL;
+        return result;
+    }
 
     Eigen::VectorXf plane_coeffs;
     ransac.getModelCoefficients(plane_coeffs);
@@ -530,7 +556,10 @@ static SegmentationResult segmentCircles2D(const CP& cloud,
     non_plane->width = non_plane->size();
     non_plane->height = 1;
 
-    if (non_plane->empty()) return result;
+    if (non_plane->empty()) {
+        result.error_code = EllipseError::NO_NON_PLANE_POINTS;
+        return result;
+    }
 
     // Step 3: Plane local frame
     buildPlaneFrame(result.fitted_normal, result.U, result.V);
@@ -542,7 +571,10 @@ static SegmentationResult segmentCircles2D(const CP& cloud,
     CP non_plane_ds(new CloudT);
     voxel.filter(*non_plane_ds);
 
-    if (non_plane_ds->empty()) return result;
+    if (non_plane_ds->empty()) {
+        result.error_code = EllipseError::NO_NON_PLANE_POINTS;
+        return result;
+    }
 
     // Step 5: Project to 2D
     Eigen::Vector3f n = result.fitted_normal;
@@ -591,7 +623,11 @@ static SegmentationResult segmentCircles2D(const CP& cloud,
         if (remaining.empty()) break;
     }
 
-    if (result.clusters_2d.size() == 2) result.success = true;
+    if (result.clusters_2d.size() == 2) {
+        result.success = true;
+    } else {
+        result.error_code = EllipseError::CLUSTER_FAIL;
+    }
     return result;
 }
 
@@ -693,33 +729,96 @@ Ellipse2D fitEllipse2D(const std::vector<Eigen::Vector2f>& pts,
                                  near_circle_ratio);
 }
 
-// ---------------------------------------------------------------------------
-// Public API: full 3D pipeline
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// P0-2: ROI crop (built-in, based on CAD theoretical model)
+// ===========================================================================
 
-EllipseResult fitEllipsesOnPlane(CP cloud, const EllipseParams& params)
+/// Crop cloud by merged AABB from roi_centers + roi_half_sizes, with z margin.
+/// @return Cropped cloud; empty cloud on parameter mismatch (caller checks).
+static CP cropROI(const CP& cloud, const EllipseParams& params)
+{
+    CP empty(new CloudT);
+    if (params.roi_centers.empty()) return empty;
+    if (params.roi_half_sizes.size() != params.roi_centers.size()) return empty;
+
+    // Merge AABB over all ROI centers
+    float xmin = std::numeric_limits<float>::max();
+    float xmax = std::numeric_limits<float>::lowest();
+    float ymin = xmin, ymax = xmax;
+    float zmin = xmin, zmax = xmax;
+    for (size_t i = 0; i < params.roi_centers.size(); ++i) {
+        const auto& c = params.roi_centers[i];
+        float half = params.roi_half_sizes[i];
+        xmin = std::min(xmin, c.x() - half);
+        xmax = std::max(xmax, c.x() + half);
+        ymin = std::min(ymin, c.y() - half);
+        ymax = std::max(ymax, c.y() + half);
+        zmin = std::min(zmin, c.z() - params.roi_z_margin);
+        zmax = std::max(zmax, c.z() + params.roi_z_margin);
+    }
+
+    CP cropped(new CloudT);
+    cropped->reserve(cloud->size());
+    for (const auto& p : *cloud) {
+        if (p.x >= xmin && p.x <= xmax &&
+            p.y >= ymin && p.y <= ymax &&
+            p.z >= zmin && p.z <= zmax) {
+            cropped->push_back(p);
+        }
+    }
+    cropped->width = static_cast<uint32_t>(cropped->size());
+    cropped->height = 1;
+    cropped->is_dense = false;
+    return cropped;
+}
+
+// ===========================================================================
+// P0-3: MODE_D — RANSAC plane + Taubin AMS + two-step LM (fast)
+//   fast_mode preset: plane_max_iter=2000, voxel_leaf=0.03, circle_max_iter=2000
+//   Target: <50ms with ROI
+// ===========================================================================
+
+EllipseResult fitEllipsesOnPlane_D(CP cloud, const EllipseParams& params)
 {
     EllipseResult result;
     result.valid = false;
     result.plane_normal = Eigen::Vector3f::Zero();
     result.plane_centroid = Eigen::Vector3f::Zero();
+    result.error_code = EllipseError::OK;
+
+    Timer timer;
+    timer.start();
 
     if (!cloud || cloud->empty()) {
         result.error = "Input cloud is empty";
+        result.error_code = EllipseError::EMPTY_CLOUD;
+        result.time_ms = timer.elapsedMs();
         return result;
     }
 
+    // fast_mode preset override (P0-3)
+    // plane_max_iter: 5000 → 2000, voxel_leaf: 0.02 → 0.03, circle_max_iter: 50000 → 2000
+    int plane_max_iter = params.fast_mode ? 2000 : 5000;
+    EllipseParams effective = params;
+    if (params.fast_mode) {
+        effective.voxel_leaf = 0.03f;
+        effective.circle_max_iter = 2000;
+    }
+
     // Step 1: Segment circles in 2D (plane RANSAC + projection + circle RANSAC)
-    SegmentationResult seg = segmentCircles2D(cloud, params);
+    SegmentationResult seg = segmentCircles2D(cloud, effective, plane_max_iter);
     result.plane_normal = seg.fitted_normal;
     result.plane_centroid = seg.fitted_centroid;
 
     if (!seg.success || seg.clusters_2d.empty()) {
         result.error = "Circle segmentation failed";
+        result.error_code = seg.error_code;
+        result.time_ms = timer.elapsedMs();
         return result;
     }
 
     // Step 2: Fit ellipse for each cluster
+    int fit_ok_count = 0;
     for (size_t ci = 0; ci < seg.clusters_2d.size(); ++ci) {
         const auto& cluster_pts = seg.clusters_2d[ci];
         if (cluster_pts.size() < 10) continue;
@@ -733,23 +832,294 @@ EllipseResult fitEllipsesOnPlane(CP cloud, const EllipseParams& params)
         }
 
         Ellipse2D e2d = fitEllipse2DWithInit(cluster_pts, circle_center_ptr, circle_radius,
-                                              params.enable_lm_algebraic,
-                                              params.enable_lm_sampson,
-                                              params.near_circle_ratio);
+                                              effective.enable_lm_algebraic,
+                                              effective.enable_lm_sampson,
+                                              effective.near_circle_ratio);
         if (!e2d.valid) continue;
 
         result.ellipses.push_back(e2d);
         result.centers.push_back(lift2DCenterTo3D(e2d.center, seg.fitted_centroid,
                                                     seg.fitted_normal, seg.U, seg.V));
+        ++fit_ok_count;
     }
+
+    result.time_ms = timer.elapsedMs();
 
     if (result.centers.empty()) {
         result.error = "No valid ellipse fitted";
+        result.error_code = EllipseError::FIT_FAIL;
         return result;
     }
 
     result.valid = true;
     return result;
+}
+
+// ===========================================================================
+// MODE_C — PCL SACMODEL_ELLIPSE3D 3D RANSAC (precise)
+//   Ported from benchmark runAlgoC (main.cpp lines 1297-1404)
+// ===========================================================================
+
+EllipseResult fitEllipsesPCL3D(CP cloud, const EllipseParams& params)
+{
+    EllipseResult result;
+    result.valid = false;
+    result.plane_normal = Eigen::Vector3f::Zero();
+    result.plane_centroid = Eigen::Vector3f::Zero();
+    result.error_code = EllipseError::OK;
+
+    Timer timer;
+    timer.start();
+
+    if (!cloud || cloud->empty()) {
+        result.error = "Input cloud is empty";
+        result.error_code = EllipseError::EMPTY_CLOUD;
+        result.time_ms = timer.elapsedMs();
+        return result;
+    }
+
+    // Step 1: RANSAC plane segmentation (shared with MODE_D for consistent eval frame)
+    const float plane_dist_threshold = 0.05f;
+    const int plane_max_iter = 5000;
+    pcl::SampleConsensusModelPlane<PointT>::Ptr plane_model(
+        new pcl::SampleConsensusModelPlane<PointT>(cloud));
+    pcl::RandomSampleConsensus<PointT> ransac(plane_model, plane_dist_threshold);
+    ransac.setMaxIterations(plane_max_iter);
+    if (!ransac.computeModel()) {
+        result.error = "Plane RANSAC failed";
+        result.error_code = EllipseError::PLANE_SEGMENT_FAIL;
+        result.time_ms = timer.elapsedMs();
+        return result;
+    }
+
+    Eigen::VectorXf plane_coeffs;
+    ransac.getModelCoefficients(plane_coeffs);
+    result.plane_normal = Eigen::Vector3f(plane_coeffs[0], plane_coeffs[1], plane_coeffs[2]).normalized();
+
+    pcl::Indices inliers;
+    ransac.getInliers(inliers);
+
+    Eigen::Vector3f centroid(0, 0, 0);
+    for (int idx : inliers) centroid += (*cloud)[idx].getVector3fMap();
+    centroid /= float(inliers.size());
+    result.plane_centroid = centroid;
+
+    // Step 2: Extract non-plane points (ellipse features)
+    CP non_plane(new CloudT);
+    for (const auto& pt : cloud->points) {
+        float dist = std::abs(pt.x * plane_coeffs[0] + pt.y * plane_coeffs[1]
+                              + pt.z * plane_coeffs[2] + plane_coeffs[3]);
+        if (dist > params.height_threshold) non_plane->push_back(pt);
+    }
+    non_plane->width = non_plane->size();
+    non_plane->height = 1;
+
+    if (non_plane->empty()) {
+        result.error = "No non-plane points";
+        result.error_code = EllipseError::NO_NON_PLANE_POINTS;
+        result.time_ms = timer.elapsedMs();
+        return result;
+    }
+
+    // Step 3: Voxel downsampling (pcl_leaf_size preserves ellipse shape detail)
+    pcl::VoxelGrid<PointT> voxel;
+    voxel.setInputCloud(non_plane);
+    voxel.setLeafSize(params.pcl_leaf_size, params.pcl_leaf_size, params.pcl_leaf_size);
+    CP cloud_ds(new CloudT);
+    voxel.filter(*cloud_ds);
+
+    if (cloud_ds->empty()) {
+        result.error = "Empty cloud after voxel";
+        result.error_code = EllipseError::NO_NON_PLANE_POINTS;
+        result.time_ms = timer.elapsedMs();
+        return result;
+    }
+
+    // Step 4: Sequentially extract 2 ellipses via PCL SACMODEL_ELLIPSE3D
+    // Note: PCL 1.15.1 SACMODEL_ELLIPSE3D does not support setAxis/setMinMaxRadius.
+    // The algorithm auto-estimates ellipse normal via 6-point sampling.
+    CP remaining = cloud_ds;
+    Eigen::Vector3f U, V;
+    buildPlaneFrame(result.plane_normal, U, V);
+
+    for (int ellipse_idx = 0; ellipse_idx < 2; ++ellipse_idx) {
+        pcl::SampleConsensusModelEllipse3D<PointT>::Ptr model(
+            new pcl::SampleConsensusModelEllipse3D<PointT>(remaining));
+        pcl::RandomSampleConsensus<PointT> ransac_ell(model, params.circle_dist_threshold);
+        ransac_ell.setMaxIterations(params.pcl_max_iter);
+        ransac_ell.setProbability(0.99);
+
+        if (!ransac_ell.computeModel()) {
+            break;
+        }
+        Eigen::VectorXf coeffs;
+        ransac_ell.getModelCoefficients(coeffs);
+        if (coeffs.size() < 8) {
+            result.error_code = EllipseError::FIT_FAIL;
+            break;
+        }
+
+        Eigen::Vector3f center3d(coeffs[0], coeffs[1], coeffs[2]);
+        result.centers.push_back(center3d);
+
+        // Build 2D ellipse result: project 3D center to plane 2D coords
+        // PCL ELLIPSE3D returns a/b directly; theta not provided (set 0, near-circle assumed)
+        Ellipse2D e2d;
+        e2d.a = coeffs[3];
+        e2d.b = coeffs[4];
+        e2d.theta = 0.0f;
+        Eigen::Vector3f to_c = center3d - result.plane_centroid;
+        Eigen::Vector3f n = result.plane_normal;
+        to_c = to_c - to_c.dot(n) * n;
+        e2d.center = Eigen::Vector2f(to_c.dot(U), to_c.dot(V));
+        e2d.valid = true;
+        result.ellipses.push_back(e2d);
+
+        // Remove current ellipse inliers, continue to next
+        pcl::Indices ell_inliers;
+        ransac_ell.getInliers(ell_inliers);
+        pcl::ExtractIndices<PointT> extract;
+        extract.setInputCloud(remaining);
+        pcl::IndicesPtr inliers_ptr(new pcl::Indices(ell_inliers));
+        extract.setIndices(inliers_ptr);
+        extract.setNegative(true);
+        CP next(new CloudT);
+        extract.filter(*next);
+        remaining = next;
+        if (remaining->empty()) break;
+    }
+
+    result.time_ms = timer.elapsedMs();
+
+    if (result.centers.size() < 2) {
+        result.error = "Failed to extract 2 ellipses";
+        result.error_code = (result.error_code == EllipseError::OK)
+                            ? EllipseError::FIT_FAIL : result.error_code;
+        return result;
+    }
+
+    result.valid = true;
+    return result;
+}
+
+// ===========================================================================
+// P0-4: Top-level dispatcher — auto-select by params.mode, apply ROI, timing
+// ===========================================================================
+
+EllipseResult fitEllipsesOnPlane(CP cloud, const EllipseParams& params)
+{
+    EllipseResult result;
+    result.valid = false;
+    result.plane_normal = Eigen::Vector3f::Zero();
+    result.plane_centroid = Eigen::Vector3f::Zero();
+    result.error_code = EllipseError::OK;
+
+    Timer timer;
+    timer.start();
+
+    if (!cloud || cloud->empty()) {
+        result.error = "Input cloud is empty";
+        result.error_code = EllipseError::EMPTY_CLOUD;
+        result.time_ms = timer.elapsedMs();
+        return result;
+    }
+
+    // ROI pre-processing (unified for both modes)
+    CP effective_cloud = cloud;
+    if (params.roi_enabled) {
+        effective_cloud = cropROI(cloud, params);
+        if (effective_cloud->empty()) {
+            result.error = "ROI crop produced empty cloud (check roi_centers/roi_half_sizes)";
+            result.error_code = EllipseError::NO_NON_PLANE_POINTS;
+            result.time_ms = timer.elapsedMs();
+            return result;
+        }
+    }
+
+    // Dispatch by mode
+    if (params.mode == EllipseFitMode::MODE_C) {
+        result = fitEllipsesPCL3D(effective_cloud, params);
+    } else {
+        result = fitEllipsesOnPlane_D(effective_cloud, params);
+    }
+
+    // Override time_ms to include ROI crop cost (top-level total)
+    result.time_ms = timer.elapsedMs();
+    return result;
+}
+
+// ===========================================================================
+// P0-2/P0-3: Parameter factory functions
+// ===========================================================================
+
+EllipseParams makeDefaultParams()
+{
+    // Backward-compatible defaults: no ROI, no fast mode, MODE_D
+    return EllipseParams{};
+}
+
+EllipseParams makeProductionParams()
+{
+    EllipseParams p;
+    p.mode = EllipseFitMode::MODE_D;       // Production default: fast
+    p.fast_mode = true;                    // Enable <50ms preset
+    p.roi_enabled = true;                  // Enable ROI crop
+    // roi_centers / roi_half_sizes MUST be filled by caller from CAD model
+    // (factory cannot know theoretical ellipse positions)
+    return p;
+}
+
+// ===========================================================================
+// P1-5/P1-6: Version & validation utilities
+// ===========================================================================
+
+const char* ellipseFittingVersionString()
+{
+    return RXS_ELLIPSE_FITTING_VERSION_STRING;
+}
+
+bool validateParams(const EllipseParams& params, std::string& err_msg)
+{
+    err_msg.clear();
+
+    if (params.voxel_leaf <= 0) {
+        err_msg = "voxel_leaf must be > 0";
+        return false;
+    }
+    if (params.circle_r_min > params.circle_r_max) {
+        err_msg = "circle_r_min must be <= circle_r_max";
+        return false;
+    }
+    if (params.circle_max_iter <= 0) {
+        err_msg = "circle_max_iter must be > 0";
+        return false;
+    }
+    if (params.pcl_max_iter <= 0) {
+        err_msg = "pcl_max_iter must be > 0";
+        return false;
+    }
+    if (params.near_circle_ratio <= 0 || params.near_circle_ratio > 1.0f) {
+        err_msg = "near_circle_ratio must be in (0, 1]";
+        return false;
+    }
+    if (params.roi_enabled) {
+        if (params.roi_half_factor <= 0) {
+            err_msg = "roi_half_factor must be > 0 when roi_enabled";
+            return false;
+        }
+        if (!params.roi_centers.empty() &&
+            params.roi_half_sizes.size() != params.roi_centers.size()) {
+            err_msg = "roi_half_sizes size must match roi_centers size";
+            return false;
+        }
+        for (size_t i = 0; i < params.roi_half_sizes.size(); ++i) {
+            if (params.roi_half_sizes[i] <= 0) {
+                err_msg = "roi_half_sizes[" + std::to_string(i) + "] must be > 0";
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 } // namespace rxs

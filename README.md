@@ -1,6 +1,6 @@
 # RXS Algorithms
 
-> 算法 Monorepo — 9 个算子模块
+> 算法 Monorepo — 12 个算子模块
 
 ## 模块清单
 
@@ -15,6 +15,9 @@
 | 7 | cylinder | D:\2_4\volume | 圆柱体计算 |
 | 8 | Flatness | D:\2_4\Flatness | 平面度 (独立实现) |
 | 9 | volume | D:\2_4\volumeGlue | 体积/胶量计算 |
+| 10 | coplanarity | D:\2_4\Coplanarity | 共面度测量 (PCA + ROI 投影) |
+| 11 | linear_regression | D:\2_4\linearRegression | 线性回归 |
+| 12 | ellipse_fitting | benchmark v6 决策 | 椭圆拟合 (Taubin AMS + 两步 LM, 替代 CzxRansac) |
 
 ## 算子查漏补缺状态
 

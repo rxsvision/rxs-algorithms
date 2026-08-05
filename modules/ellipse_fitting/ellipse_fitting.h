@@ -11,14 +11,26 @@
  * 3. Taubin AMS algebraic fit → LM_algebraic (algebraic residual) → LM_sampson (Sampson distance)
  * 4. Near-circle constraint (force theta=0 when a/b > threshold)
  *
- * Algorithm source: benchmark v6 (D:\01_Environments_AImodels\benchmark\main.cpp)
+ * Algorithm source: benchmark v7 (D:\01_Environments_AImodels\benchmark\main.cpp)
  *   - fitEllipseTaubin: Taubin 1991 AMS, no generalized eigenvalue needed
  *   - refineEllipseLM_algebraic: analytic Jacobian, fastest convergence
  *   - refineEllipseLM_sampson: numerical Jacobian, approximate geometric distance
  *
+ * @note Thread-safety: All functions are thread-safe (no global mutable state).
+ *       Different threads can call fitEllipsesOnPlane concurrently with
+ *       different params/clouds.
+ *
  * @license BSL 1.1 (Change Date: 2030-01-01, Change License: GPLv2)
  * @company  Suzhou RXS Vision Technology Co., Ltd.
  */
+
+// ---------------------------------------------------------------------------
+// Version macros (P1-5)
+// ---------------------------------------------------------------------------
+#define RXS_ELLIPSE_FITTING_VERSION_MAJOR 1
+#define RXS_ELLIPSE_FITTING_VERSION_MINOR 1
+#define RXS_ELLIPSE_FITTING_VERSION_PATCH 0
+#define RXS_ELLIPSE_FITTING_VERSION_STRING "1.1.0"
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -40,7 +52,27 @@ enum class EllipseFitMode {
 };
 
 /**
+ * @brief Error codes for ellipse fitting (P0-1)
+ *
+ * Distinguishes failure causes so callers can decide retry vs alarm.
+ */
+enum class EllipseError {
+    OK = 0,              ///< Success
+    EMPTY_CLOUD,         ///< Input point cloud is empty
+    INVALID_PARAMS,      ///< Invalid parameter values
+    PLANE_SEGMENT_FAIL,  ///< Plane RANSAC failed to converge
+    NO_NON_PLANE_POINTS, ///< No non-plane points (height_threshold too large)
+    CLUSTER_FAIL,        ///< Circle RANSAC / DBSCAN clustering failed
+    FIT_FAIL,            ///< Ellipse fitting failed (Taubin/LM did not converge)
+    NUMERIC_INSTABLE,    ///< Numerical instability (singular matrix)
+    UNKNOWN = 99
+};
+
+/**
  * @brief Ellipse fitting parameters
+ *
+ * Use makeDefaultParams() for backward-compatible defaults (no ROI, no fast mode).
+ * Use makeProductionParams() for production deployment (ROI + fast mode enabled).
  */
 struct EllipseParams {
     EllipseFitMode mode = EllipseFitMode::MODE_D;  ///< Algorithm mode (D=fast, C=precise)
@@ -57,6 +89,16 @@ struct EllipseParams {
     // MODE_C specific
     float pcl_leaf_size = 0.05f;         ///< Voxel leaf for PCL ELLIPSE3D
     int pcl_max_iter = 10000;            ///< PCL RANSAC max iterations
+
+    // --- P0-2: ROI configuration (built-in, no external preprocessing) ---
+    bool roi_enabled = false;            ///< Enable ROI crop (default off for backward compat)
+    float roi_half_factor = 2.0f;        ///< ROI half-side = max(theoretical_a, theoretical_b) * factor
+    float roi_z_margin = 0.18f;          ///< Z margin to include non-plane noise thickness
+    std::vector<Eigen::Vector3f> roi_centers; ///< ROI center points (theoretical ellipse centers)
+    std::vector<float> roi_half_sizes;        ///< ROI half-sides (max(a,b) * roi_half_factor per ellipse)
+
+    // --- P0-3: fast mode preset (target <50ms with ROI) ---
+    bool fast_mode = false;              ///< Fast mode: plane_max_iter=2000, voxel=0.03, circle_iter=2000
 };
 
 /**
@@ -79,30 +121,96 @@ struct EllipseResult {
     Eigen::Vector3f plane_normal;             ///< Fitted plane normal vector
     Eigen::Vector3f plane_centroid;           ///< Fitted plane centroid
     bool valid = false;                       ///< Whether computation succeeded
-    std::string error;                        ///< Error message if !valid
+    std::string error;                        ///< Error message if !valid (backward compat)
+    EllipseError error_code = EllipseError::OK; ///< Structured error code (P0-1)
+    double time_ms = 0;                       ///< Total elapsed time (P0-4): ROI + segment + fit
 };
 
+// ---------------------------------------------------------------------------
+// Parameter presets (P0-2/P0-3): two factory functions
+// ---------------------------------------------------------------------------
+
 /**
- * @brief Full pipeline: RANSAC plane + project + circle RANSAC + Taubin + two-step LM
+ * @brief Default parameters (backward-compatible, no ROI, no fast mode)
+ *
+ * Equivalent to EllipseParams{} default construction. Use this when you need
+ * the legacy behavior (caller manages ROI externally, standard speed).
+ *
+ * @return EllipseParams with all defaults
+ */
+EllipseParams makeDefaultParams();
+
+/**
+ * @brief Production parameters (ROI enabled, fast mode on, target <50ms)
+ *
+ * Recommended for production deployment. Requires caller to fill in
+ * roi_centers and roi_half_sizes based on CAD theoretical model.
+ *
+ * Mode is MODE_D (fast). To use MODE_C (precise), set .mode after construction:
+ *   auto p = rxs::makeProductionParams();
+ *   p.mode = rxs::EllipseFitMode::MODE_C;
+ *
+ * @return EllipseParams with roi_enabled=true, fast_mode=true, optimized iters
+ */
+EllipseParams makeProductionParams();
+
+// ---------------------------------------------------------------------------
+// Version & validation utilities (P1-5, P1-6)
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief Get library version string
+ * @return Static C string like "1.1.0"
+ */
+const char* ellipseFittingVersionString();
+
+/**
+ * @brief Validate parameter values (P1-6)
+ *
+ * Checks: voxel_leaf > 0, circle_r_min <= circle_r_max, circle_max_iter > 0,
+ * roi_half_factor > 0 (if roi_enabled), near_circle_ratio in (0, 1].
+ *
+ * @param params   Parameters to validate
+ * @param err_msg  [out] Error description if invalid (empty if valid)
+ * @return true if all parameters are valid
+ */
+bool validateParams(const EllipseParams& params, std::string& err_msg);
+
+// ---------------------------------------------------------------------------
+// Full 3D pipeline (auto-dispatch by params.mode)
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief Full pipeline (auto-select by params.mode)
+ *
+ * Dispatches to fitEllipsesOnPlane_D (MODE_D) or fitEllipsesPCL3D (MODE_C).
+ * Applies ROI crop first if params.roi_enabled = true.
+ * Fills result.time_ms with total elapsed time.
  *
  * @param cloud   Input point cloud (plane + ellipse features)
  * @param params  Fitting parameters
- * @return EllipseResult with 3D centers and 2D ellipse parameters
+ * @return EllipseResult with 3D centers, 2D ellipse params, timing, error_code
  */
+EllipseResult fitEllipsesOnPlane(CP cloud, const EllipseParams& params = EllipseParams());
+
 /**
  * @brief MODE_D: RANSAC plane + Taubin + two-step LM (fast, ~62ms)
+ *
+ * If params.fast_mode = true, uses plane_max_iter=2000, voxel_leaf=0.03,
+ * circle_max_iter=2000 (target <50ms with ROI).
  */
 EllipseResult fitEllipsesOnPlane_D(CP cloud, const EllipseParams& params);
 
 /**
  * @brief MODE_C: PCL SACMODEL_ELLIPSE3D 3D RANSAC (precise, ~205ms)
+ *
+ * Uses PCL built-in 3D ellipse RANSAC. Higher accuracy (E1~0.017mm) but slower.
  */
 EllipseResult fitEllipsesPCL3D(CP cloud, const EllipseParams& params);
 
-/**
- * @brief Full pipeline (auto-select by params.mode)
- */
-EllipseResult fitEllipsesOnPlane(CP cloud, const EllipseParams& params = EllipseParams());
+// ---------------------------------------------------------------------------
+// 2D-only ellipse fitting
+// ---------------------------------------------------------------------------
 
 /**
  * @brief 2D-only ellipse fitting: Taubin AMS + two-step LM (on a known 2D point set)
