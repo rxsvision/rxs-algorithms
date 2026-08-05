@@ -33,10 +33,17 @@ typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<PointT> CloudT;
 typedef CloudT::Ptr CP;
 
+/// Ellipse fitting algorithm mode
+enum class EllipseFitMode {
+    MODE_D,  ///< Fast: RANSAC plane + Taubin AMS + two-step LM (~62ms, E~0.025mm)
+    MODE_C,  ///< Precise: PCL SACMODEL_ELLIPSE3D 3D RANSAC (~205ms, E1~0.017mm)
+};
+
 /**
  * @brief Ellipse fitting parameters
  */
 struct EllipseParams {
+    EllipseFitMode mode = EllipseFitMode::MODE_D;  ///< Algorithm mode (D=fast, C=precise)
     float height_threshold = 0.06f;      ///< Non-plane point height threshold
     float voxel_leaf = 0.02f;            ///< Voxel downsampling leaf size
     float circle_r_min = 1.5f;           ///< Circle RANSAC minimum radius
@@ -47,6 +54,9 @@ struct EllipseParams {
     bool enable_lm_sampson = true;       ///< Enable Sampson distance LM
     float near_circle_ratio = 0.95f;     ///< Near-circle constraint (force theta=0 when a/b > this)
     unsigned int seed = 42;              ///< RANSAC random seed (0 = random)
+    // MODE_C specific
+    float pcl_leaf_size = 0.05f;         ///< Voxel leaf for PCL ELLIPSE3D
+    int pcl_max_iter = 10000;            ///< PCL RANSAC max iterations
 };
 
 /**
@@ -78,6 +88,19 @@ struct EllipseResult {
  * @param cloud   Input point cloud (plane + ellipse features)
  * @param params  Fitting parameters
  * @return EllipseResult with 3D centers and 2D ellipse parameters
+ */
+/**
+ * @brief MODE_D: RANSAC plane + Taubin + two-step LM (fast, ~62ms)
+ */
+EllipseResult fitEllipsesOnPlane_D(CP cloud, const EllipseParams& params);
+
+/**
+ * @brief MODE_C: PCL SACMODEL_ELLIPSE3D 3D RANSAC (precise, ~205ms)
+ */
+EllipseResult fitEllipsesPCL3D(CP cloud, const EllipseParams& params);
+
+/**
+ * @brief Full pipeline (auto-select by params.mode)
  */
 EllipseResult fitEllipsesOnPlane(CP cloud, const EllipseParams& params = EllipseParams());
 

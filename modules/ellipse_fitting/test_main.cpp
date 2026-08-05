@@ -130,6 +130,25 @@ int main()
     tc3.n_points = 200;
     bool r3 = runTest(tc3, "Test 3: axis-aligned ellipse (a=3.0, b=1.0, theta=0)");
 
+    // Test 4: Mode switching API verification
+    std::cout << "\n============================================================\n";
+    std::cout << "Test 4: Mode switching API (MODE_D / MODE_C)\n";
+    std::cout << "============================================================\n";
+    rxs::EllipseParams params_d, params_c;
+    params_d.mode = rxs::EllipseFitMode::MODE_D;
+    params_c.mode = rxs::EllipseFitMode::MODE_C;
+    params_c.pcl_leaf_size = 0.05f;
+    params_c.pcl_max_iter = 10000;
+    std::cout << "  MODE_D: lm_algebraic=" << params_d.enable_lm_algebraic << ", lm_sampson=" << params_d.enable_lm_sampson << "\n";
+    std::cout << "  MODE_C: pcl_leaf=" << params_c.pcl_leaf_size << ", pcl_max_iter=" << params_c.pcl_max_iter << "\n";
+    rxs::CP empty_cloud(new rxs::CloudT);
+    rxs::EllipseResult res_d = rxs::fitEllipsesOnPlane(empty_cloud, params_d);
+    rxs::EllipseResult res_c = rxs::fitEllipsesOnPlane(empty_cloud, params_c);
+    bool r4 = (!res_d.valid && !res_c.valid && !res_d.error.empty() && !res_c.error.empty());
+    std::cout << "  MODE_D empty: valid=" << res_d.valid << ", error=\"" << res_d.error << "\"\n";
+    std::cout << "  MODE_C empty: valid=" << res_c.valid << ", error=\"" << res_c.error << "\"\n";
+    std::cout << "Test 4: " << (r4 ? "PASS" : "FAIL") << "\n";
+    
     // Summary
     std::cout << "\n============================================================\n";
     std::cout << "Summary\n";
@@ -137,7 +156,7 @@ int main()
     std::cout << "Test 1: " << (r1 ? "PASS" : "FAIL") << "\n";
     std::cout << "Test 2: " << (r2 ? "PASS" : "FAIL") << "\n";
     std::cout << "Test 3: " << (r3 ? "PASS" : "FAIL") << "\n";
-    std::cout << "Overall: " << ((r1 && r2 && r3) ? "PASS" : "FAIL") << std::endl;
+    std::cout << "Test 4: " << (r4 ? "PASS" : "FAIL") << "\n";
 
-    return (r1 && r2 && r3) ? 0 : 1;
+    return (r1 && r2 && r3 && r4) ? 0 : 1;
 }
