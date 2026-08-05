@@ -1,4 +1,4 @@
-﻿#include"Hole.h"
+#include"Hole.h"
 #include<vector>
 #include <pcl/filters/passthrough.h>
 #include <pcl/registration/transformation_estimation_svd.h>
@@ -162,7 +162,7 @@ void main()
     //    cout << bias << endl;
     //}
 
-    HMODULE hDLL = LoadLibrary(L"czxToolkit.dll");
+    HMODULE hDLL = LoadLibraryW(L"czxToolkit.dll");
     typedef Eigen::Matrix4f(__cdecl* MYTYPE)(CP c1, CP c2, string hole_pos_path_x, string hole_pos_path_y);
     MYTYPE registration = (MYTYPE)GetProcAddress(hDLL, "registration");
     auto path_list1 = arsenal::pathGather(conf["root"], "*zx.pcd");
@@ -195,7 +195,9 @@ void main()
 
         #ifdef CZX_DEBUG
         pcl::transformPointCloud(*copy_x, *copy_x, transformation);
+        #ifdef RXS_HAS_VISUALIZATION
         Tool::showComparison(copy_x, copy_y);
+        #endif
         #endif
     }
 

@@ -1,8 +1,26 @@
-﻿cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.16)
 project(rxs-algorithms LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Visualization support (PCLVisualizer / VTK) — OFF by default for CI.
+# Enable locally with -DRXS_ENABLE_VISUALIZATION=ON for debug visualization.
+option(RXS_ENABLE_VISUALIZATION "Enable PCL visualization support (requires VTK)" OFF)
+
+# PCL on_nurbs module (removed in PCL 1.14+)
+find_package(PCL REQUIRED COMPONENTS common)
+include(CheckIncludeFileCXX)
+set(CMAKE_REQUIRED_INCLUDES ${PCL_INCLUDE_DIRS})
+check_include_file_cxx("pcl/surface/on_nurbs/fitting_curve_2d_apdm.h" RXS_HAS_PCL_ON_NURBS)
+unset(CMAKE_REQUIRED_INCLUDES)
+if(RXS_HAS_PCL_ON_NURBS)
+    message(STATUS "  PCL on_nurbs:     AVAILABLE")
+else()
+    message(STATUS "  PCL on_nurbs:     NOT FOUND (curve_length and surface disabled)")
+    set(RXS_BUILD_CURVE_LENGTH OFF CACHE BOOL "Disabled: PCL on_nurbs not available" FORCE)
+    set(RXS_BUILD_SURFACE OFF CACHE BOOL "Disabled: PCL on_nurbs not available" FORCE)
+endif()
 
 # Algorithm modules — each can be built independently
 option(RXS_BUILD_ALL "Build all algorithm modules" OFF)
@@ -15,6 +33,8 @@ option(RXS_BUILD_VOLUME "Build volume module" ON)
 option(RXS_BUILD_FLATNESS "Build flatness module" ON)
 option(RXS_BUILD_VOLUME_GLUE "Build volume_glue module" ON)
 option(RXS_BUILD_HOLE_DEPTH "Build hole_depth module" ON)
+option(RXS_BUILD_COPLANARITY "Build coplanarity module" ON)
+option(RXS_BUILD_LINEAR_REGRESSION "Build linear_regression module" ON)
 
 if(RXS_BUILD_CURVE_LENGTH)
     add_subdirectory(modules/curve_length)
@@ -42,4 +62,15 @@ if(RXS_BUILD_VOLUME_GLUE)
 endif()
 if(RXS_BUILD_HOLE_DEPTH)
     add_subdirectory(modules/hole_depth)
+endif()
+if(RXS_BUILD_COPLANARITY)
+    add_subdirectory(modules/coplanarity)
+endif()
+if(RXS_BUILD_LINEAR_REGRESSION)
+    add_subdirectory(modules/linear_regression)
+endif()
+
+option(RXS_BUILD_ELLIPSE_FITTING "Build ellipse_fitting module" ON)
+if(RXS_BUILD_ELLIPSE_FITTING)
+    add_subdirectory(modules/ellipse_fitting)
 endif()

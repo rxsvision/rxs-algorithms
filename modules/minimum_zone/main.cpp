@@ -52,7 +52,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr computeConvexHull(const pcl::PointCloud<pcl:
 
     arsenal::copyFile_czx("czxToolkit.dll", dllFileName);
 
-    HMODULE hDLL = LoadLibrary(arsenal::ConvertToLPCWSTR(dllFileName));
+    HMODULE hDLL = LoadLibraryW(arsenal::ConvertToLPCWSTR(dllFileName));
     cout << hDLL << endl;
     typedef CP(__cdecl* CC)(CP cloud);
     CC cch = (CC)GetProcAddress(hDLL, "computeConvexHull");
