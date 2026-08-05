@@ -18,7 +18,11 @@ add_library(rxs_linear_regression STATIC
 
 target_include_directories(rxs_linear_regression PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${EIGEN3_INCLUDE_DIR}
+    ${EIGEN3_INCLUDE_DIRS}
+)
+
+target_link_libraries(rxs_linear_regression PUBLIC
+    Eigen3::Eigen
 )
 
 # ---------------------------------------------------------------------------
