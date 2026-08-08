@@ -1,4 +1,4 @@
-﻿#include"czxTool.h"
+#include"czxTool.h"
 #include<pcl/surface/on_nurbs/fitting_surface_pdm.h>
 #include<pcl/common/pca.h>
 #include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
@@ -143,7 +143,9 @@ void main()
 	OMPSurface sur(12);
 	sur.setInputCloud(cloud);
 	sur.process();
+	#ifdef RXS_HAS_VISUALIZATION
 	Tool::showComparison(cloud, sur.reconstruction());
+	#endif
 
 
 	for (auto file_path : path_list)	

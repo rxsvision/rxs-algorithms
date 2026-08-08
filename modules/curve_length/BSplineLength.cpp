@@ -1,4 +1,4 @@
-﻿#include "BSplineLength.h"
+#include "BSplineLength.h"
 
 //#define CZX_DEBUG
 
@@ -467,7 +467,9 @@ double BSplineLength::lineProfile(const pcl::on_nurbs::FittingCurve2d& fit, CP c
 		maxErrorPoint.reset(new CloudT);
 		maxErrorPoint->push_back(PointT(fit.m_data->interior[arg_max_error][0], fit.m_data->interior[arg_max_error][1], 0));
 		maxErrorPoint->push_back(PointT(pt.x, pt.y, 0));
+		#ifdef RXS_HAS_VISUALIZATION
 		Tool::showComparison(cloud, curve_cloud, maxErrorPoint, 3, 1, 5);
+		#endif
 	}
 	return 2 * max_error;
 }
@@ -501,7 +503,9 @@ double BSplineLength::lineProfileMy(const pcl::on_nurbs::FittingCurve2d& fit, CP
 		maxErrorPoint.reset(new CloudT);
 		maxErrorPoint->push_back(PointT(fit.m_data->interior[arg_max_error][0], fit.m_data->interior[arg_max_error][1], 0));
 		maxErrorPoint->push_back(PointT(pt.x, pt.y, 0));
+		#ifdef RXS_HAS_VISUALIZATION
 		Tool::showComparison(cloud, curve_cloud, maxErrorPoint, 3, 1, 5);
+		#endif
 	}
 	return 2 * max_error;
 }
