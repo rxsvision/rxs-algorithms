@@ -1,0 +1,5 @@
+# 原始配置 (deformModelPath.czx)
+# model_S5A1X:D:\TestData\Group1\KS-20240424-Y\NOFIX-NO1/20240424170158-647_1_X.pcd
+
+# YAML 转换
+model_S5A1X: 'D:\TestData\Group1\KS-20240424-Y\NOFIX-NO1/20240424170158-647_1_X.pcd'
