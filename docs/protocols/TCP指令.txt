@@ -1,0 +1,9 @@
+techDeform,model_S5A1X,D:/code/meshSlice/S5-A/1x.pcd
+techDeform,S5A1X,D:/download/3DLS/3DLS/20241205141450-326_1_X.pcd
+estimateDeform,S5A1X,D:/download/3DLS/3DLS/20241205141450-326_1_X.pcd
+estimateDeform,S5A1X,D:/download/3DLS/3DLS/20241205141606-688_1_X.pcd
+validDeform,S5A1X,D:/download/3DLS/3DLS/20241205141450-326_1_X.pcd
+estimateAndPredictDeform,S5A1X,D:/download/3DLS/3DLS/20241205141450-326_1_X.pcd
+
+predict,MAIN_W1,a:288.905,b:0.776597,c:0.985751,d:0.89564,e:0
+predict,MAIN_W1,288.905,0.776597,0.985751,0.89564

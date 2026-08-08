@@ -1,0 +1,7 @@
+# 原始配置 (deformDirection.czx)
+# S5A1X:0,1
+# model_S5A1X:0,1
+
+# YAML 转换
+S5A1X: "0,1"
+model_S5A1X: "0,1"
