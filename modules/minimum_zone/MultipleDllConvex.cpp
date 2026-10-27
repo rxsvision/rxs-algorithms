@@ -13,7 +13,8 @@ MultipleDllConvex::MultipleDllConvex(int thread_num_in)
     for (int i = 0; i < thread_num; i++)
     {
         std::string dllFileName = "./czxToolkit/czxToolkit_" + to_string(i) + ".dll";
-        HMODULE hDLL = LoadLibraryW(arsenal::ConvertToLPCWSTR(dllFileName));
+        const std::wstring wideDllFileName = arsenal::ConvertToLPCWSTR(dllFileName);
+        HMODULE hDLL = LoadLibraryW(wideDllFileName.c_str());
         if (hDLL)
         {
             loaded_dll.push_back(hDLL);

@@ -430,7 +430,7 @@ namespace arsenal {
 
 	bool copyFile_czx(const std::string& sourcePath, const std::string& destinationPath);
 
-	LPCWSTR ConvertToLPCWSTR(const std::string& inputString);
+	std::wstring ConvertToLPCWSTR(const std::string& inputString);
 
 	template<typename CLOUD>
 	typename CLOUD::Ptr downSampleByIndex(typename CLOUD::Ptr input_cloud, int N)

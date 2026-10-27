@@ -382,7 +382,7 @@ namespace arsenal {
 
 	bool copyFile_czx(const std::string& sourcePath, const std::string& destinationPath);
 
-	LPCWSTR ConvertToLPCWSTR(const std::string& inputString);
+	std::wstring ConvertToLPCWSTR(const std::string& inputString);
 };
 
 #endif

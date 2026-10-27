@@ -406,12 +406,29 @@ namespace arsenal
 		}
 	}
 
-	LPCWSTR ConvertToLPCWSTR(const std::string& inputString)
+	std::wstring ConvertToLPCWSTR(const std::string& inputString)
 	{
-		int size_needed = MultiByteToWideChar(CP_UTF8, 0, &inputString[0], static_cast<int>(inputString.size()), NULL, 0);
-		std::wstring wideString(size_needed, 0);
-		MultiByteToWideChar(CP_UTF8, 0, &inputString[0], static_cast<int>(inputString.size()), &wideString[0], size_needed);
-		return wideString.c_str();
+		if (inputString.empty()) {
+			return {};
+		}
+
+		const int input_size = static_cast<int>(inputString.size());
+		if (input_size <= 0 || static_cast<std::string::size_type>(input_size) != inputString.size()) {
+			return {};
+		}
+
+		const int size_needed = MultiByteToWideChar(CP_UTF8, 0, inputString.data(), input_size, nullptr, 0);
+		if (size_needed <= 0) {
+			return {};
+		}
+
+		std::wstring wideString(static_cast<std::wstring::size_type>(size_needed), L'\0');
+		const int converted = MultiByteToWideChar(CP_UTF8, 0, inputString.data(), input_size, &wideString[0], size_needed);
+		if (converted != size_needed) {
+			return {};
+		}
+
+		return wideString;
 	}
 
 }
